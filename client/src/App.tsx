@@ -1,11 +1,13 @@
 import { Suspense, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Loader, Stats, KeyboardControls } from "@react-three/drei";
+import { QueryClientProvider } from "@tanstack/react-query";
 
 import Gallery from "./components/gallery/Gallery";
 import MusicPlayer from "./components/player/MusicPlayer";
 import ProjectDetails from "./components/gallery/ProjectDetails";
 import { useAudio } from "./lib/stores/useAudio";
+import { queryClient } from "./lib/queryClient";
 
 // Define keyboard controls as an enum
 export enum Controls {
@@ -51,33 +53,35 @@ function App() {
   }, [setBackgroundMusic, setHitSound, setSuccessSound]);
 
   return (
-    <div className="portfolio-container">
-      <KeyboardControls map={keyMap}>
-        <Canvas
-          shadows
-          camera={{ position: [0, 1.8, 0], fov: 75, near: 0.1, far: 1000 }}
-          gl={{ 
-            antialias: true,
-            logarithmicDepthBuffer: true,
-            powerPreference: "high-performance"
-          }}
-          style={{ outline: 'none' }}
-          tabIndex={0}
-        >
-          <color attach="background" args={["#f5f5f5"]} />
-          <fog attach="fog" args={["#f5f5f5", 10, 50]} />
-          
-          <Suspense fallback={null}>
-            {ready && <Gallery />}
-          </Suspense>
-        </Canvas>
-      </KeyboardControls>
-      
-      <MusicPlayer />
-      <ProjectDetails />
-      <Loader />
-      {import.meta.env.DEV && <Stats />}
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <div className="portfolio-container">
+        <KeyboardControls map={keyMap}>
+          <Canvas
+            shadows
+            camera={{ position: [0, 1.8, 0], fov: 75, near: 0.1, far: 1000 }}
+            gl={{ 
+              antialias: true,
+              logarithmicDepthBuffer: true,
+              powerPreference: "high-performance"
+            }}
+            style={{ outline: 'none' }}
+            tabIndex={0}
+          >
+            <color attach="background" args={["#f5f5f5"]} />
+            <fog attach="fog" args={["#f5f5f5", 10, 50]} />
+            
+            <Suspense fallback={null}>
+              {ready && <Gallery />}
+            </Suspense>
+          </Canvas>
+        </KeyboardControls>
+        
+        <MusicPlayer />
+        <ProjectDetails />
+        <Loader />
+        {import.meta.env.DEV && <Stats />}
+      </div>
+    </QueryClientProvider>
   );
 }
 

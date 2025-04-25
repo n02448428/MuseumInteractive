@@ -422,3 +422,31 @@ canvas {
 .controls-help button:hover {
   background-color: #eeeeee;
 }
+
+/* Exhibit Description (Bottom Left) */
+.exhibit-description {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  max-width: 350px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 16px;
+  z-index: 900;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.exhibit-description h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 18px;
+  color: #fff;
+}
+
+.exhibit-description p {
+  margin: 0;
+  line-height: 1.4;
+}

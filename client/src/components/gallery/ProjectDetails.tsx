@@ -107,7 +107,9 @@ export default function ProjectDetails() {
     
     // If user hasn't moved since viewing the exhibit, return to starting position
     const startPosition = new THREE.Vector3(0, 1.8, 0);
-    const currentPosition = new THREE.Vector3().copy(camera.position);
+    // Convert Vec3 array to THREE.Vector3
+    const cameraPos = camera.position;
+    const currentPosition = new THREE.Vector3(cameraPos[0], cameraPos[1], cameraPos[2]);
     
     // Get distance from the starting position
     const distanceFromExhibit = currentPosition.distanceTo(startPosition);
