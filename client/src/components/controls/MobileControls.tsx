@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { usePortfolio } from '../../lib/stores/usePortfolio';
 import * as THREE from 'three';
@@ -19,6 +20,7 @@ export default function MobileControls() {
     path
   } = usePortfolio();
 
+  // Initialize all state hooks unconditionally at the top
   const [showControls, setShowControls] = useState(true);
   const [joystickActive, setJoystickActive] = useState(false);
   const [joystickPos, setJoystickPos] = useState<TouchPosition>({ x: 0, y: 0 });
@@ -27,13 +29,10 @@ export default function MobileControls() {
   const [lookDelta, setLookDelta] = useState<TouchPosition>({ x: 0, y: 0 });
   const [startTouch, setStartTouch] = useState<TouchPosition>({ x: 0, y: 0 });
 
-
-  // Skip rendering if not on mobile
-  if (!isMobile) return null;
-
-  // Effect for applying movement from joystick
+  // Movement effect
   useEffect(() => {
-    let interval;
+    let interval: NodeJS.Timeout | undefined;
+    
     if (joystickActive && !isInteracting && !path.active) {
       interval = setInterval(() => {
         const forward = new THREE.Vector3(
@@ -58,12 +57,15 @@ export default function MobileControls() {
         } else {
           setCameraMoving(false);
         }
-      }, 16); 
+      }, 16);
     }
-    return () => clearInterval(interval);
-  }, [joystickActive, moveVector, position, lookAt, updateCameraPosition, isInteracting, path.active]);
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [joystickActive, moveVector, position, lookAt, updateCameraPosition, isInteracting, path.active, setCameraMoving]);
 
-  // Effect for applying rotation from look area
+  // Look effect
   useEffect(() => {
     if (lookActive && !isInteracting) {
       const currentDir = new THREE.Vector3(
@@ -80,6 +82,9 @@ export default function MobileControls() {
     }
   }, [lookActive, lookDelta, position, lookAt, updateCameraLookAt, isInteracting]);
 
+  // Skip rendering if not on mobile
+  if (!isMobile) return null;
+
   const handleJoystickStart = (e: React.TouchEvent) => {
     e.preventDefault();
     const touch = e.touches[0];
@@ -92,7 +97,7 @@ export default function MobileControls() {
     e.preventDefault();
     if (!joystickActive) return;
     const touch = e.touches[0];
-    const maxDistance = 50; 
+    const maxDistance = 50;
     const deltaX = touch.clientX - startTouch.x;
     const deltaY = touch.clientY - startTouch.y;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
