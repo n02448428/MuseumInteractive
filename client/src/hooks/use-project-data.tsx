@@ -75,6 +75,12 @@ const fetchProjectData = async (category: ProjectCategory): Promise<Project[]> =
       return data.projects;
     }
     
+    // Check if response is HTML (error page)
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('text/html')) {
+      throw new Error(`Failed to fetch ${category} projects`);
+    }
+    
     // Parse the text content into projects
     const textContent = await response.text();
     return parseTextToProjects(textContent, category);
