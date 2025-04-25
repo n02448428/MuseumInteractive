@@ -133,9 +133,6 @@ export default function Gallery() {
       {/* Controls */}
       <FirstPersonControls />
       <MobileControls />
-      
-      {/* Project details overlay */}
-      <ProjectDetails />
     </>
   );
 }

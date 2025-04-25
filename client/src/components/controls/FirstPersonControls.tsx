@@ -5,8 +5,9 @@ import { usePortfolio } from '../../lib/stores/usePortfolio';
 import { Controls } from '../../App';
 
 // Movement settings
-const MOVE_SPEED = 0.15; // Increased for faster movement
-const ROTATION_SPEED = 0.01; // Further reduced for more controlled turning
+const MOVE_SPEED = 0.15; // Normal walking speed
+const SPRINT_SPEED = 0.3; // Sprint speed when Shift is pressed
+const ROTATION_SPEED = 0.01; // Rotation speed for turning
 
 // Define keyboard state interface
 interface KeyState {
@@ -16,6 +17,7 @@ interface KeyState {
   right: boolean;
   interact: boolean;
   jump: boolean;
+  sprint: boolean; // Track sprint key (shift)
 }
 
 export default function FirstPersonControls() {
@@ -36,6 +38,7 @@ export default function FirstPersonControls() {
     right: false,
     interact: false,
     jump: false,
+    sprint: false,
   });
   
   // Refs for rotation and position tracking
@@ -243,6 +246,13 @@ export default function FirstPersonControls() {
           e.preventDefault();
           setKeyState(state => ({ ...state, jump: true }));
           break;
+          
+        case 'ShiftLeft':
+        case 'ShiftRight':
+          e.preventDefault();
+          setKeyState(state => ({ ...state, sprint: true }));
+          console.log("Key set: sprint = true");
+          break;
       }
     };
     
@@ -285,6 +295,13 @@ export default function FirstPersonControls() {
         case 'Space':
           e.preventDefault();
           setKeyState(state => ({ ...state, jump: false }));
+          break;
+          
+        case 'ShiftLeft':
+        case 'ShiftRight':
+          e.preventDefault();
+          setKeyState(state => ({ ...state, sprint: false }));
+          console.log("Key set: sprint = false");
           break;
       }
     };

@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { usePortfolio } from '../../lib/stores/usePortfolio';
 import { ProjectCategory } from '../../lib/types';
 
+// Note: This component renders in HTML DOM, not in THREE.js scene
+
 // Category colors (matching ExhibitObject)
 const CATEGORY_COLORS = {
   [ProjectCategory.MUSIC]: '#ff6b6b',
