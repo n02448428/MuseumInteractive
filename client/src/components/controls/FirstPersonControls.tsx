@@ -256,7 +256,7 @@ export default function FirstPersonControls() {
     };
   }, []);
   
-  // Main update loop - extremely simplified for stability
+  // Main update loop - simplified for stability with turning functionality
   useFrame(() => {
     // If we're following a path, prioritize that movement
     if (path.active) {
@@ -270,40 +270,61 @@ export default function FirstPersonControls() {
     // Use our custom keyState for simplified movement
     const moveForward = keyState.forward;
     const moveBackward = keyState.backward;
-    const moveLeft = keyState.left;
-    const moveRight = keyState.right;
+    const turnLeft = keyState.left;  // Now used for rotation
+    const turnRight = keyState.right; // Now used for rotation
     
-    if (!(moveForward || moveBackward || moveLeft || moveRight)) {
-      return;
+    // First handle turning/rotation with left and right keys
+    if (turnLeft || turnRight) {
+      // Calculate rotation amount
+      const rotationAmount = ROTATION_SPEED * 2;
+      
+      // Update rotation based on key press
+      if (turnLeft) {
+        rotationY.current += rotationAmount;
+        console.log("Turning left, rotation:", rotationY.current);
+      }
+      if (turnRight) {
+        rotationY.current -= rotationAmount;
+        console.log("Turning right, rotation:", rotationY.current);
+      }
+      
+      // Update forward vector after rotation
+      const forward = new THREE.Vector3(0, 0, -1);
+      forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+      
+      // Update camera look direction
+      const currentPos = camera.position.clone();
+      const targetPos = currentPos.clone().add(forward);
+      
+      // Update camera directly
+      camera.lookAt(targetPos);
+      updateCameraLookAt([targetPos.x, targetPos.y, targetPos.z]);
     }
     
-    // Calculate the movement direction vector
-    const moveDir = new THREE.Vector3(0, 0, 0);
-    
-    // Calculate the forward vector based on camera rotation
-    const forward = new THREE.Vector3(0, 0, -1);
-    forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-    
-    // Calculate the right vector from the forward vector
-    const right = new THREE.Vector3(1, 0, 0);
-    right.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-    
-    // Add movement in each direction
-    if (moveForward) moveDir.add(forward);
-    if (moveBackward) moveDir.sub(forward);
-    if (moveRight) moveDir.add(right);
-    if (moveLeft) moveDir.sub(right);
-    
-    // Normalize and apply speed if we have movement
-    if (moveDir.length() > 0) {
-      moveDir.normalize().multiplyScalar(MOVE_SPEED);
+    // Then handle forward/backward movement
+    if (moveForward || moveBackward) {
+      // Calculate the movement direction vector
+      const moveDir = new THREE.Vector3(0, 0, 0);
       
-      // Move camera directly (only X and Z, keeping Y constant)
-      camera.position.x += moveDir.x;
-      camera.position.z += moveDir.z;
+      // Calculate the forward vector based on camera rotation
+      const forward = new THREE.Vector3(0, 0, -1);
+      forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
       
-      // Log what's happening
-      console.log("Moving camera:", moveDir);
+      // Add movement in forward/backward direction
+      if (moveForward) moveDir.add(forward);
+      if (moveBackward) moveDir.sub(forward);
+      
+      // Normalize and apply speed if we have movement
+      if (moveDir.length() > 0) {
+        moveDir.normalize().multiplyScalar(MOVE_SPEED);
+        
+        // Move camera directly (only X and Z, keeping Y constant)
+        camera.position.x += moveDir.x;
+        camera.position.z += moveDir.z;
+        
+        // Log what's happening
+        console.log("Moving camera:", moveDir);
+      }
     }
     
     // Basic collision detection with gallery bounds
@@ -317,9 +338,10 @@ export default function FirstPersonControls() {
     // Keep store in sync with camera
     updateCameraPosition([camera.position.x, camera.position.y, camera.position.z]);
     
-    // Update camera look direction 
-    const lookTarget = camera.position.clone();
-    lookTarget.add(forward); // Look forward in the direction we're facing
+    // Always update the camera look direction to ensure it's consistent
+    const forward = new THREE.Vector3(0, 0, -1);
+    forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+    const lookTarget = camera.position.clone().add(forward);
     camera.lookAt(lookTarget);
   });
 
