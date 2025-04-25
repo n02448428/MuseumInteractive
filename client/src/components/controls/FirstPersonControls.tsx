@@ -5,8 +5,8 @@ import { usePortfolio } from '../../lib/stores/usePortfolio';
 import { Controls } from '../../App';
 
 // Movement settings
-const MOVE_SPEED = 0.1; // Slower movement for more control
-const ROTATION_SPEED = 0.05; // Increased for faster turning
+const MOVE_SPEED = 0.15; // Increased for faster movement
+const ROTATION_SPEED = 0.02; // Reduced for more controlled turning
 const LOOK_SPEED = 2.0;
 
 // Define keyboard state interface
@@ -275,8 +275,8 @@ export default function FirstPersonControls() {
     
     // First handle turning/rotation with left and right keys
     if (turnLeft || turnRight) {
-      // Calculate rotation amount
-      const rotationAmount = ROTATION_SPEED * 2;
+      // Calculate rotation amount - using a higher multiplier for keyboard turning
+      const rotationAmount = ROTATION_SPEED * 3; // Increased multiplier for keyboard turning
       
       // Update rotation based on key press
       if (turnLeft) {
