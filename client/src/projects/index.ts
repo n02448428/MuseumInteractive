@@ -1,4 +1,4 @@
-import { Exhibit, Project, ProjectCategory } from '../lib/types';
+import { Exhibit, ProjectCategory } from '../lib/types';
 
 // Define the gallery exhibits in 3D space - arranged in a semicircle for better visibility
 export const exhibits: Exhibit[] = [
@@ -57,13 +57,3 @@ export const exhibits: Exhibit[] = [
     description: 'Connect through various social platforms and channels.'
   }
 ];
-
-// Initial projects array (fallback data)
-export const projects: Project[] = [
-  // This is just placeholder data
-  // The real data will come from the text files
-];
-
-// Export a function to filter projects by category
-export const getProjectsByCategory = (category: ProjectCategory) => 
-  projects.filter(p => p.category === category);

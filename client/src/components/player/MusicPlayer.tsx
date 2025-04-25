@@ -6,7 +6,6 @@ import { useAudio } from '../../lib/stores/useAudio';
 export default function MusicPlayer() {
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
   
   const { 
     backgroundMusic, 
@@ -14,35 +13,39 @@ export default function MusicPlayer() {
     toggleMute 
   } = useAudio();
   
-  // Setup audio player event listeners
+  const [isPlaying, setIsPlaying] = useState(false);
+  
+  // Setup audio player
   useEffect(() => {
-    if (!backgroundMusic) return;
-    
-    const handleCanPlayThrough = () => setLoading(false);
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
-    
-    backgroundMusic.addEventListener('canplaythrough', handleCanPlayThrough);
-    backgroundMusic.addEventListener('play', handlePlay);
-    backgroundMusic.addEventListener('pause', handlePause);
-    
-    // Initialize volume based on mute state
-    backgroundMusic.muted = isMuted;
-    
-    // Check initial play state
-    if (!backgroundMusic.paused) {
-      setIsPlaying(true);
+    if (backgroundMusic) {
+      backgroundMusic.addEventListener('canplaythrough', () => {
+        setLoading(false);
+      });
+      
+      backgroundMusic.addEventListener('play', () => {
+        setIsPlaying(true);
+      });
+      
+      backgroundMusic.addEventListener('pause', () => {
+        setIsPlaying(false);
+      });
+      
+      // Initialize volume based on mute state
+      backgroundMusic.muted = isMuted;
+      
+      return () => {
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0;
+        
+        // Clean up event listeners
+        backgroundMusic.removeEventListener('canplaythrough', () => {});
+        backgroundMusic.removeEventListener('play', () => {});
+        backgroundMusic.removeEventListener('pause', () => {});
+      };
     }
-    
-    return () => {
-      // Clean up event listeners
-      backgroundMusic.removeEventListener('canplaythrough', handleCanPlayThrough);
-      backgroundMusic.removeEventListener('play', handlePlay);
-      backgroundMusic.removeEventListener('pause', handlePause);
-    };
   }, [backgroundMusic, isMuted]);
   
-  // Handle play/pause toggle
+  // Handle play/pause
   const togglePlayback = () => {
     if (!backgroundMusic) return;
     
@@ -55,7 +58,7 @@ export default function MusicPlayer() {
     }
   };
   
-  // Handle mute/unmute toggle
+  // Handle mute/unmute
   const handleToggleMute = () => {
     if (backgroundMusic) {
       backgroundMusic.muted = !isMuted;
@@ -68,66 +71,75 @@ export default function MusicPlayer() {
     setExpanded(!expanded);
   };
   
-  // Only show player if music exists AND (is playing OR is expanded)
-  if (!backgroundMusic || (!isPlaying && !expanded)) {
+  // Only display the music player when music is selected or playing
+  if (!backgroundMusic) {
     return null;
   }
   
-  // Main component render
   return (
-    <div className="music-player-container">
-      <motion.div 
-        className="music-player"
-        initial={{ x: expanded ? 0 : "calc(100% - 56px)" }}
-        animate={{ x: expanded ? 0 : "calc(100% - 56px)" }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-      >
-        {/* Toggle button */}
-        <button 
-          className="music-player-toggle"
-          onClick={toggleExpanded}
-          aria-label={expanded ? "Collapse music player" : "Expand music player"}
+    <AnimatePresence>
+      {(isPlaying || expanded) && (
+        <motion.div 
+          className="music-player-container"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
         >
-          <Music size={20} />
-        </button>
-        
-        {/* Player controls */}
-        <div className="music-player-controls">
-          <button 
-            className="music-player-button"
-            onClick={togglePlayback}
-            disabled={loading}
-            aria-label={isPlaying ? "Pause music" : "Play music"}
+          <motion.div 
+            className="music-player"
+            initial={{ x: expanded ? 0 : "calc(100% - 56px)" }}
+            animate={{ x: expanded ? 0 : "calc(100% - 56px)" }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
           >
-            {loading ? (
-              <div className="loading-spinner" />
-            ) : isPlaying ? (
-              <Pause size={20} />
-            ) : (
-              <Play size={20} />
-            )}
-          </button>
-          
-          <button
-            className="music-player-button"
-            onClick={handleToggleMute}
-            aria-label={isMuted ? "Unmute" : "Mute"}
-          >
-            {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-          </button>
-          
-          <div className="music-player-info">
-            <div className="music-player-title">
-              Ambient Gallery Music
+            {/* Toggle button */}
+            <button 
+              className="music-player-toggle"
+              onClick={toggleExpanded}
+              aria-label={expanded ? "Collapse music player" : "Expand music player"}
+            >
+              <Music size={20} />
+            </button>
+            
+            {/* Player controls */}
+            <div className="music-player-controls">
+              <button 
+                className="music-player-button"
+                onClick={togglePlayback}
+                disabled={loading}
+                aria-label={isPlaying ? "Pause music" : "Play music"}
+              >
+                {loading ? (
+                  <div className="loading-spinner" />
+                ) : isPlaying ? (
+                  <Pause size={20} />
+                ) : (
+                  <Play size={20} />
+                )}
+              </button>
+              
+              <button
+                className="music-player-button"
+                onClick={handleToggleMute}
+                aria-label={isMuted ? "Unmute" : "Mute"}
+              >
+                {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+              </button>
+              
+              <div className="music-player-info">
+                <div className="music-player-title">
+                  Ambient Gallery Music
+                </div>
+                <div className="music-player-artist">
+                  Background Soundtrack
+                </div>
+              </div>
             </div>
-            <div className="music-player-artist">
-              Background Soundtrack
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
-// CSS styles are in client/src/index.css
+// CSS styles moved to client/src/index.css since we can't use JSX style tags directly

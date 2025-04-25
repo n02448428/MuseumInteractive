@@ -96,67 +96,16 @@ export default function FirstPersonControls() {
         tempRotationX.current = 0;
         tempRotationY.current = 0;
         
-        // Return to normal plane view with smooth animation
-        if (Math.abs(tempRotationX.current) > 0.01) {
-          // Start smooth animation to return to level view
-          const startX = tempRotationX.current;
-          const startTime = Date.now();
-          const duration = 600; // milliseconds
-          
-          const smoothCameraReturn = () => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            // Ease out cubic function for smooth deceleration
-            const easeOut = 1 - Math.pow(1 - progress, 3);
-            
-            // Apply eased rotation
-            const currentX = startX * (1 - easeOut);
-            
-            // Calculate new forward vector
-            const forward = new THREE.Vector3(0, 0, -1);
-            forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-            
-            // Apply current vertical rotation
-            const right = new THREE.Vector3(1, 0, 0);
-            right.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-            forward.applyAxisAngle(right, currentX);
-            forward.normalize();
-            
-            // Update camera look direction
-            const currentPos = camera.position.clone();
-            const targetPos = currentPos.clone().add(forward);
-            
-            camera.lookAt(targetPos);
-            updateCameraLookAt([targetPos.x, targetPos.y, targetPos.z]);
-            
-            if (progress < 1) {
-              requestAnimationFrame(smoothCameraReturn);
-            } else {
-              // Final reset to exactly level
-              const levelForward = new THREE.Vector3(0, 0, -1);
-              levelForward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-              levelForward.normalize();
-              
-              const levelTargetPos = camera.position.clone().add(levelForward);
-              camera.lookAt(levelTargetPos);
-              updateCameraLookAt([levelTargetPos.x, levelTargetPos.y, levelTargetPos.z]);
-            }
-          };
-          
-          requestAnimationFrame(smoothCameraReturn);
-        } else {
-          // No significant vertical rotation, just reset directly
-          const forward = new THREE.Vector3(0, 0, -1);
-          forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-          forward.normalize();
-          
-          const currentPos = camera.position.clone();
-          const targetPos = currentPos.clone().add(forward);
-          
-          camera.lookAt(targetPos);
-          updateCameraLookAt([targetPos.x, targetPos.y, targetPos.z]);
-        }
+        // Return to normal plane view (remove vertical rotation)
+        const forward = new THREE.Vector3(0, 0, -1);
+        forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+        forward.normalize();
+        
+        const currentPos = camera.position.clone();
+        const targetPos = currentPos.clone().add(forward);
+        
+        camera.lookAt(targetPos);
+        updateCameraLookAt([targetPos.x, targetPos.y, targetPos.z]);
       }
     };
     

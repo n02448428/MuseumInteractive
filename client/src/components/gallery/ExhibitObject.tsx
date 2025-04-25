@@ -222,14 +222,12 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
         .copy(camera.position)
         .distanceTo(new THREE.Vector3(...exhibit.position));
       
-      // If hovering over the object, select it
-      if (hovered && !currentExhibit) {
+      // Select exhibit for showing description when within 5 units
+      if (distance < 5 && !currentExhibit) {
         selectExhibit(exhibit);
-      } else if (!hovered && currentExhibit && currentExhibit.id === exhibit.id) {
-        // Clear selection if not hovering and moving far enough away
-        if (distance > 15) {
-          selectExhibit(null);
-        }
+      } else if (distance >= 5 && currentExhibit && currentExhibit.id === exhibit.id) {
+        // Clear selection when moving away
+        selectExhibit(null);
       }
       
       // Always make exhibit face the camera for better visibility
@@ -470,7 +468,28 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
         {exhibit.title}
       </Text>
       
-      {/* Removed hover description - now only shown at bottom left */}
+      {/* Enhanced hover description - positioned below the exhibit */}
+      {hovered && (
+        <Html position={[0, -2.5, 0]} center transform distanceFactor={12}>
+          <div style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            color: 'white',
+            padding: '0.8rem 1.2rem',
+            borderRadius: '8px',
+            fontSize: '14px',
+            maxWidth: '300px',
+            textAlign: 'center',
+            boxShadow: '0 0 10px rgba(0,0,0,0.5)',
+            pointerEvents: 'none',
+            transition: 'all 0.3s ease',
+            zIndex: 100
+          }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold' }}>{exhibit.title}</h3>
+            <p style={{ margin: '0 0 8px 0', opacity: 0.9 }}>{exhibit.description}</p>
+            <p style={{ margin: '0', color: '#4ade80', fontWeight: 'bold', fontSize: '13px' }}>Click to explore</p>
+          </div>
+        </Html>
+      )}
       
     </group>
   );

@@ -1,8 +1,7 @@
-import { useEffect, useState, useRef } from 'react';
-import { Text, Html } from '@react-three/drei';
+import { useEffect, useState } from 'react';
+import { Text } from '@react-three/drei';
 import { usePortfolio } from '../../lib/stores/usePortfolio';
 import { useFrame, useThree } from '@react-three/fiber';
-import { motion, AnimatePresence } from 'framer-motion';
 import * as THREE from 'three';
 
 export default function GalleryText() {
@@ -14,128 +13,73 @@ export default function GalleryText() {
   // Get the camera from R3F
   const { camera } = useThree();
   
-  const [lastMoveTime, setLastMoveTime] = useState(Date.now());
-  const [isActive, setIsActive] = useState(false);
+  const [shouldShow, setShouldShow] = useState(true);
+  const [fadeOpacity, setFadeOpacity] = useState(1);
   const [lastPosition, setLastPosition] = useState<THREE.Vector3 | null>(null);
-  const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(null);
-  const movementThreshold = 0.01; // Very small threshold to detect minor movement
+  const [isMoving, setIsMoving] = useState(false);
+  const [movementTimer, setMovementTimer] = useState<NodeJS.Timeout | null>(null);
   
-  // Detect user activity/inactivity based on movement
+  // Initial position to check if user is at starting point
+  const startPosition = new THREE.Vector3(0, 1.8, 0);
+  const movementThreshold = 0.05; // How much movement is considered "moving"
+  
+  // Update text visibility - always visible
   useFrame(() => {
-    if (!camera || isInteracting || showProjectDetails) return;
+    if (!camera) return;
     
-    const currentTime = Date.now();
+    // Always keep text visible regardless of camera position or movement
+    setShouldShow(true);
     
-    // Check if camera has moved
-    if (lastPosition) {
-      const distance = camera.position.distanceTo(lastPosition);
-      
-      if (distance > movementThreshold) {
-        // Movement detected - reset timer
-        setLastMoveTime(currentTime);
-        setIsActive(false);
-        
-        // Clear existing timer
-        if (inactivityTimer) {
-          clearTimeout(inactivityTimer);
-        }
-        
-        // Set new timer
-        const timer = setTimeout(() => {
-          setIsActive(true);
-        }, 3000); // Show text after 3 seconds of inactivity
-        
-        setInactivityTimer(timer as unknown as NodeJS.Timeout);
+    // Only hide when interacting with exhibits
+    if (isInteracting || showProjectDetails) {
+      if (fadeOpacity > 0) {
+        setFadeOpacity(Math.max(fadeOpacity - 0.05, 0));
       }
+    } else if (fadeOpacity < 1) {
+      setFadeOpacity(Math.min(fadeOpacity + 0.05, 1));
     }
-    
-    // Update last position
-    setLastPosition(camera.position.clone());
   });
   
-  // Clear timer on unmount
+  // Clean up timer on unmount
   useEffect(() => {
     return () => {
-      if (inactivityTimer) {
-        clearTimeout(inactivityTimer);
-      }
+      if (movementTimer) clearTimeout(movementTimer);
     };
-  }, [inactivityTimer]);
+  }, [movementTimer]);
   
-  // Don't show when interacting with exhibits
-  useEffect(() => {
-    if (isInteracting || showProjectDetails) {
-      setIsActive(false);
-    }
-  }, [isInteracting, showProjectDetails]);
+  if (fadeOpacity <= 0) return null;
   
   return (
     <>
-      {/* Add 2D HTML overlay for header and footer text */}
-      <Html
-        fullscreen
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-          zIndex: 10,
-        }}
+      {/* Header text */}
+      <Text
+        position={[0, 2.5, -4]}
+        fontSize={0.3}
+        color="black"
+        anchorX="center"
+        anchorY="middle"
+        outlineWidth={0.01}
+        outlineColor="#ffffff"
+        material-transparent={true}
+        material-opacity={fadeOpacity}
       >
-        <AnimatePresence>
-          {isActive && (
-            <>
-              {/* Header text at top of screen */}
-              <motion.div 
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5 }}
-                style={{
-                  position: 'absolute',
-                  top: '40px',
-                  left: '0',
-                  width: '100%',
-                  textAlign: 'center',
-                  color: 'black',
-                  fontFamily: 'Inter, sans-serif',
-                  fontWeight: 'bold',
-                  fontSize: '28px',
-                  textShadow: '0 0 8px white, 0 0 12px white, 0 0 16px white',
-                  pointerEvents: 'none',
-                }}
-              >
-                Dmitry A. Markelov
-              </motion.div>
-              
-              {/* Footer text at bottom of screen */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.5 }}
-                style={{
-                  position: 'absolute',
-                  bottom: '40px',
-                  left: '0',
-                  width: '100%',
-                  textAlign: 'center',
-                  color: 'black',
-                  fontFamily: 'Inter, sans-serif',
-                  fontWeight: 'bold',
-                  fontSize: '20px',
-                  textShadow: '0 0 8px white, 0 0 12px white, 0 0 16px white',
-                  pointerEvents: 'none',
-                }}
-              >
-                Portfolio Gallery
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-      </Html>
+        Dmitry A. Markelov
+      </Text>
+      
+      {/* Footer text */}
+      <Text
+        position={[0, 0.5, -4]}
+        fontSize={0.2}
+        color="black"
+        anchorX="center"
+        anchorY="middle"
+        outlineWidth={0.008}
+        outlineColor="#ffffff"
+        material-transparent={true}
+        material-opacity={fadeOpacity}
+      >
+        Portfolio Gallery
+      </Text>
     </>
   );
 }
