@@ -1,6 +1,5 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
-import { useKeyboardControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { usePortfolio } from '../../lib/stores/usePortfolio';
 import { Controls } from '../../App';
@@ -9,9 +8,28 @@ const MOVE_SPEED = 5;
 const LOOK_SPEED = 2;
 const COLLISION_DISTANCE = 0.5;
 
+// Define keyboard state interface
+interface KeyState {
+  forward: boolean;
+  backward: boolean;
+  left: boolean;
+  right: boolean;
+  interact: boolean;
+  jump: boolean;
+}
+
 export default function FirstPersonControls() {
   const { camera } = useThree();
-  const [, getKeyboardState] = useKeyboardControls<Controls>();
+  
+  // Custom keyboard state implementation
+  const [keyState, setKeyState] = useState<KeyState>({
+    forward: false,
+    backward: false,
+    left: false,
+    right: false,
+    interact: false,
+    jump: false,
+  });
   
   // Refs for rotation and position tracking
   const rotationY = useRef(0);
@@ -109,51 +127,85 @@ export default function FirstPersonControls() {
     return true;
   };
 
-  // Log key states for debugging
+  // Set up keyboard listeners for manual key handling
   useEffect(() => {
+    // Log current keyState periodically
     const logKeyState = () => {
-      const state = getKeyboardState();
-      console.log("Keyboard state:", state);
+      console.log("Current keyboard state:", keyState);
     };
-    
-    // Log initial state and set up interval
-    logKeyState();
     const interval = setInterval(logKeyState, 2000);
     
-    // Cleanup
-    return () => clearInterval(interval);
-  }, [getKeyboardState]);
-  
-  // Set up keyboard listeners to supplement default controls
-  useEffect(() => {
+    // Define keyDown handler
     const handleKeyDown = (e: KeyboardEvent) => {
       console.log("Key pressed:", e.code);
       
-      // Handle WASD and arrow keys directly
+      // Update key state based on pressed key
       switch (e.code) {
         case 'KeyW':
         case 'ArrowUp':
-          // Move forward
+          setKeyState(prev => ({ ...prev, forward: true }));
           break;
         case 'KeyS':
         case 'ArrowDown':
-          // Move backward
+          setKeyState(prev => ({ ...prev, backward: true }));
           break;
         case 'KeyA':
         case 'ArrowLeft':
-          // Move left
+          setKeyState(prev => ({ ...prev, left: true }));
           break;
         case 'KeyD':
         case 'ArrowRight':
-          // Move right
+          setKeyState(prev => ({ ...prev, right: true }));
+          break;
+        case 'KeyE':
+          setKeyState(prev => ({ ...prev, interact: true }));
+          break;
+        case 'Space':
+          setKeyState(prev => ({ ...prev, jump: true }));
           break;
       }
     };
     
-    window.addEventListener('keydown', handleKeyDown);
+    // Define keyUp handler
+    const handleKeyUp = (e: KeyboardEvent) => {
+      console.log("Key released:", e.code);
+      
+      // Update key state based on released key
+      switch (e.code) {
+        case 'KeyW':
+        case 'ArrowUp':
+          setKeyState(prev => ({ ...prev, forward: false }));
+          break;
+        case 'KeyS':
+        case 'ArrowDown':
+          setKeyState(prev => ({ ...prev, backward: false }));
+          break;
+        case 'KeyA':
+        case 'ArrowLeft':
+          setKeyState(prev => ({ ...prev, left: false }));
+          break;
+        case 'KeyD':
+        case 'ArrowRight':
+          setKeyState(prev => ({ ...prev, right: false }));
+          break;
+        case 'KeyE':
+          setKeyState(prev => ({ ...prev, interact: false }));
+          break;
+        case 'Space':
+          setKeyState(prev => ({ ...prev, jump: false }));
+          break;
+      }
+    };
     
+    // Add event listeners
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    // Remove event listeners on cleanup
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      clearInterval(interval);
     };
   }, []);
   
@@ -165,13 +217,12 @@ export default function FirstPersonControls() {
     // Otherwise, handle manual keyboard controls
     if (isInteracting) return; // Disable movement during interactions
     
-    const state = getKeyboardState();
-    console.log("Frame keyboard state:", state);
+    // Use our custom keyState instead of the drei keyboard controls
     
-    const moveForward = state.forward;
-    const moveBackward = state.backward;
-    const moveLeft = state.left;
-    const moveRight = state.right;
+    const moveForward = keyState.forward;
+    const moveBackward = keyState.backward;
+    const moveLeft = keyState.left;
+    const moveRight = keyState.right;
     
     if (!(moveForward || moveBackward || moveLeft || moveRight)) {
       setCameraMoving(false);
