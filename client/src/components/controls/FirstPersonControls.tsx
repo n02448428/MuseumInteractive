@@ -49,29 +49,72 @@ export default function FirstPersonControls() {
     camera: { position, moving }
   } = usePortfolio();
   
-  // Handle mouse movements for looking around - completely simplified for stability
+  // Enhanced mouse movement handling with temporary rotation and free-look
   useEffect(() => {
+    // Store the initial camera rotation as a reference point
+    const initialRotation = { x: 0, y: 0 };
+    // Store temporary look rotation while right mouse is pressed
+    const tempRotation = { x: 0, y: 0 };
+    // Track if right mouse button is being held
+    let rightMouseDown = false;
+    
+    const handleMouseDown = (event: MouseEvent) => {
+      if (event.button === 2) { // Right mouse button
+        rightMouseDown = true;
+        // Store current rotation as starting point
+        tempRotation.x = 0;
+        tempRotation.y = rotationY.current;
+      }
+    };
+    
+    const handleMouseUp = (event: MouseEvent) => {
+      if (event.button === 2) { // Right mouse button released
+        rightMouseDown = false;
+        
+        // Return to normal plane view (only keep y rotation)
+        const forward = new THREE.Vector3(0, 0, -1);
+        forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+        
+        const currentPos = camera.position.clone();
+        const targetPos = currentPos.clone().add(forward);
+        
+        camera.lookAt(targetPos);
+        updateCameraLookAt([targetPos.x, targetPos.y, targetPos.z]);
+      }
+    };
+    
     const handleMouseMove = (event: MouseEvent) => {
       // Only track rotation if we're not interacting with UI and right mouse button is pressed
-      if (isInteracting || event.buttons !== 2) return;
+      if (isInteracting || !rightMouseDown) return;
       
-      // Update our rotation tracking variable 
-      rotationY.current -= event.movementX * ROTATION_SPEED;
+      // Update rotation based on mouse movement
+      tempRotation.x -= event.movementY * ROTATION_SPEED * 0.5; // Vertical look (limited)
+      tempRotation.y -= event.movementX * ROTATION_SPEED;       // Horizontal look (360 degrees)
       
-      // Update the camera's rotation directly
+      // Limit vertical looking to prevent flipping
+      tempRotation.x = Math.max(-Math.PI/3, Math.min(Math.PI/3, tempRotation.x));
+      
+      // Apply temporary rotation while in free-look mode
       const forward = new THREE.Vector3(0, 0, -1);
-      forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-      forward.normalize();
+      const up = new THREE.Vector3(0, 1, 0);
       
-      // Calculate new look-at point (1 unit in front of camera)
+      // Apply rotations in correct order
+      forward.applyAxisAngle(up, rotationY.current + tempRotation.y);
+      
+      // Create right vector for vertical rotation
+      const right = new THREE.Vector3(1, 0, 0);
+      right.applyAxisAngle(up, rotationY.current + tempRotation.y);
+      
+      // Apply vertical rotation
+      forward.applyAxisAngle(right, tempRotation.x);
+      
+      // Calculate new look-at point
       const currentPos = camera.position.clone();
       const targetPos = currentPos.clone().add(forward);
       
-      // Update both the camera and our state
+      // Update camera directly
       camera.lookAt(targetPos);
       updateCameraLookAt([targetPos.x, targetPos.y, targetPos.z]);
-      
-      console.log("Camera rotated: ", rotationY.current);
     };
     
     // Prevent context menu on right-click
@@ -80,11 +123,15 @@ export default function FirstPersonControls() {
     };
     
     // Add event listeners
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('contextmenu', handleContextMenu);
     
     // Remove event listeners on cleanup
     return () => {
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mouseup', handleMouseUp);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('contextmenu', handleContextMenu);
     };
@@ -113,12 +160,12 @@ export default function FirstPersonControls() {
     }
     
     // Calculate direction to target
-    const direction = new THREE.Vector3()
+    const directionVector = new THREE.Vector3()
       .subVectors(targetPos, currentPos)
       .normalize();
     
     // Move directly towards target at a constant speed
-    const movement = direction.multiplyScalar(MOVE_SPEED);
+    const movement = directionVector.multiplyScalar(MOVE_SPEED);
     
     // Move camera directly
     camera.position.x += movement.x;
@@ -256,7 +303,35 @@ export default function FirstPersonControls() {
     };
   }, []);
   
-  // Main update loop - simplified for stability with turning functionality
+  // Track if the right mouse button is being held
+  const [rightMouseHeld, setRightMouseHeld] = useState(false);
+  
+  // Set up right mouse button state listener
+  useEffect(() => {
+    const handleMouseDown = (event: MouseEvent) => {
+      if (event.button === 2) { // Right mouse button
+        setRightMouseHeld(true);
+      }
+    };
+    
+    const handleMouseUp = (event: MouseEvent) => {
+      if (event.button === 2) { // Right mouse button released
+        setRightMouseHeld(false);
+      }
+    };
+    
+    // Add event listeners
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
+    
+    // Remove event listeners on cleanup
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+  
+  // Main update loop - enhanced with contextual movement behavior
   useFrame(() => {
     // If we're following a path, prioritize that movement
     if (path.active) {
@@ -270,61 +345,77 @@ export default function FirstPersonControls() {
     // Use our custom keyState for simplified movement
     const moveForward = keyState.forward;
     const moveBackward = keyState.backward;
-    const turnLeft = keyState.left;  // Now used for rotation
-    const turnRight = keyState.right; // Now used for rotation
+    const leftKey = keyState.left;
+    const rightKey = keyState.right;
     
-    // First handle turning/rotation with left and right keys
-    if (turnLeft || turnRight) {
-      // Calculate rotation amount - using a higher multiplier for keyboard turning
-      const rotationAmount = ROTATION_SPEED * 3; // Increased multiplier for keyboard turning
-      
-      // Update rotation based on key press
-      if (turnLeft) {
-        rotationY.current += rotationAmount;
-        console.log("Turning left, rotation:", rotationY.current);
+    // Calculate the base vectors
+    const forwardVector = new THREE.Vector3(0, 0, -1);
+    forwardVector.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+    forwardVector.normalize();
+    
+    // Calculate perpendicular right vector
+    const rightVector = new THREE.Vector3(1, 0, 0);
+    rightVector.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+    rightVector.normalize();
+    
+    // Initialize movement direction vector
+    const moveDir = new THREE.Vector3(0, 0, 0);
+    
+    // Movement behavior depends on right mouse button state
+    if (rightMouseHeld) {
+      // RIGHT MOUSE HELD: Left/right keys strafe instead of turn
+      if (leftKey) {
+        moveDir.sub(rightVector); // Strafe left
+        console.log("Strafing left");
       }
-      if (turnRight) {
-        rotationY.current -= rotationAmount;
-        console.log("Turning right, rotation:", rotationY.current);
+      
+      if (rightKey) {
+        moveDir.add(rightVector); // Strafe right
+        console.log("Strafing right");
       }
-      
-      // Update forward vector after rotation
-      const forward = new THREE.Vector3(0, 0, -1);
-      forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-      
-      // Update camera look direction
-      const currentPos = camera.position.clone();
-      const targetPos = currentPos.clone().add(forward);
-      
-      // Update camera directly
-      camera.lookAt(targetPos);
-      updateCameraLookAt([targetPos.x, targetPos.y, targetPos.z]);
+    } else {
+      // NORMAL MODE: Left/right keys rotate camera
+      if (leftKey || rightKey) {
+        // Calculate rotation amount
+        const rotationAmount = ROTATION_SPEED * 3;
+        
+        // Update rotation based on key press
+        if (leftKey) {
+          rotationY.current += rotationAmount;
+          console.log("Turning left, rotation:", rotationY.current);
+        }
+        if (rightKey) {
+          rotationY.current -= rotationAmount;
+          console.log("Turning right, rotation:", rotationY.current);
+        }
+        
+        // Update forward vector after rotation
+        forwardVector.set(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+        
+        // Update camera look direction
+        const currentPos = camera.position.clone();
+        const targetPos = currentPos.clone().add(forwardVector);
+        
+        // Update camera directly
+        camera.lookAt(targetPos);
+        updateCameraLookAt([targetPos.x, targetPos.y, targetPos.z]);
+      }
     }
     
-    // Then handle forward/backward movement
-    if (moveForward || moveBackward) {
-      // Calculate the movement direction vector
-      const moveDir = new THREE.Vector3(0, 0, 0);
+    // Handle forward/backward movement (same in both modes)
+    if (moveForward) moveDir.add(forwardVector);
+    if (moveBackward) moveDir.sub(forwardVector);
+    
+    // Apply movement if we have any
+    if (moveDir.length() > 0) {
+      moveDir.normalize().multiplyScalar(MOVE_SPEED);
       
-      // Calculate the forward vector based on camera rotation
-      const forward = new THREE.Vector3(0, 0, -1);
-      forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+      // Move camera directly (only X and Z, keeping Y constant)
+      camera.position.x += moveDir.x;
+      camera.position.z += moveDir.z;
       
-      // Add movement in forward/backward direction
-      if (moveForward) moveDir.add(forward);
-      if (moveBackward) moveDir.sub(forward);
-      
-      // Normalize and apply speed if we have movement
-      if (moveDir.length() > 0) {
-        moveDir.normalize().multiplyScalar(MOVE_SPEED);
-        
-        // Move camera directly (only X and Z, keeping Y constant)
-        camera.position.x += moveDir.x;
-        camera.position.z += moveDir.z;
-        
-        // Log what's happening
-        console.log("Moving camera:", moveDir);
-      }
+      // Log what's happening
+      console.log("Moving camera:", moveDir);
     }
     
     // Basic collision detection with gallery bounds
@@ -339,9 +430,7 @@ export default function FirstPersonControls() {
     updateCameraPosition([camera.position.x, camera.position.y, camera.position.z]);
     
     // Always update the camera look direction to ensure it's consistent
-    const forward = new THREE.Vector3(0, 0, -1);
-    forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-    const lookTarget = camera.position.clone().add(forward);
+    const lookTarget = camera.position.clone().add(forwardVector);
     camera.lookAt(lookTarget);
   });
 

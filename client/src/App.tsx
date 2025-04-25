@@ -4,7 +4,6 @@ import { Loader, Stats, KeyboardControls } from "@react-three/drei";
 
 import Gallery from "./components/gallery/Gallery";
 import MusicPlayer from "./components/player/MusicPlayer";
-import ControlsHelp from "./components/ui/ControlsHelp";
 import { useAudio } from "./lib/stores/useAudio";
 
 // Define keyboard controls as an enum
@@ -73,7 +72,6 @@ function App() {
         </Canvas>
       </KeyboardControls>
       
-      <ControlsHelp />
       <MusicPlayer />
       <Loader />
       {import.meta.env.DEV && <Stats />}
