@@ -157,29 +157,22 @@ canvas {
   z-index: 1000;
 }
 
-.project-details-panel {
+.panel {
   background: white;
-  width: 100%;
   max-width: 800px;
   max-height: 90vh;
   border-radius: 12px;
-  overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-  pointer-events: auto;
-  display: flex;
-  flex-direction: column;
   margin: 20px;
+  padding: 1.5rem;
   overflow-y: auto;
-  position: relative;
 }
 
-/* Legacy header - kept for backward compatibility */
-.project-details-header {
-  padding: 1rem 1.5rem;
-  color: white;
+.header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 1rem;
 }
 
 /* New minimal header */
