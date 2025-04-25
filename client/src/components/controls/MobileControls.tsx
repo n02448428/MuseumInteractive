@@ -27,12 +27,10 @@ export default function MobileControls() {
     path
   } = usePortfolio();
   
-  // Skip rendering if not on mobile
-  if (!isMobile) return null;
-  
   // Effect for applying movement from joystick
   useEffect(() => {
-    if (!joystickActive || isInteracting || path.active) return;
+    // Skip if we're not on mobile, joystick not active, or other conditions
+    if (!isMobile || !joystickActive || isInteracting || path.active) return;
     
     // Only update at 60fps
     const interval = setInterval(() => {
@@ -68,11 +66,12 @@ export default function MobileControls() {
     }, 16); // ~60fps
     
     return () => clearInterval(interval);
-  }, [joystickActive, moveVector, position, lookAt, updateCameraPosition]);
+  }, [isMobile, joystickActive, moveVector, position, lookAt, updateCameraPosition, isInteracting, path, setCameraMoving]);
   
   // Effect for applying rotation from look area
   useEffect(() => {
-    if (!lookActive || isInteracting) return;
+    // Skip if we're not on mobile or other conditions
+    if (!isMobile || !lookActive || isInteracting) return;
     
     // Calculate new look direction
     const currentDir = new THREE.Vector3(
@@ -92,7 +91,7 @@ export default function MobileControls() {
     
     // Reset look delta after applying
     setLookDelta({ x: 0, y: 0 });
-  }, [lookActive, lookDelta, position, lookAt, updateCameraLookAt]);
+  }, [isMobile, lookActive, lookDelta, position, lookAt, updateCameraLookAt, isInteracting]);
   
   // Handle touch events for the movement joystick
   const handleJoystickStart = (e: React.TouchEvent) => {
@@ -167,6 +166,11 @@ export default function MobileControls() {
   const toggleControls = () => {
     setShowControls(!showControls);
   };
+  
+  // Don't render anything if not on mobile
+  if (!isMobile) {
+    return null;
+  }
   
   return (
     <div className="mobile-controls">

@@ -1,0 +1,21 @@
+Abstract Expressions
+A series exploring color, form and emotion through abstract painting techniques.
+These works use bold color contrasts and dynamic brushwork to convey complex emotional states.
+Date: 2023-04-12
+URL: https://example.com/art/abstract
+
+-----------------
+
+Urban Landscapes
+Photographic study of architectural forms and urban spaces.
+This collection explores the intersection of human design and natural elements in city environments.
+Date: 2023-07-25
+Link: https://example.com/art/urban
+
+-----------------
+
+Digital Dreamscapes
+Digital art exploring surreal and imaginary worlds.
+Created using 3D modeling and digital painting techniques to build immersive visual environments.
+Date: 2023-10-18
+Website: https://example.com/art/digital
