@@ -129,47 +129,97 @@ export default function FirstPersonControls() {
 
   // Set up keyboard listeners for manual key handling
   useEffect(() => {
-    // Log current keyState periodically
+    // Log current keyState periodically but less often
     const logKeyState = () => {
       console.log("Current keyboard state:", keyState);
     };
-    const interval = setInterval(logKeyState, 2000);
+    const interval = setInterval(logKeyState, 5000);
     
-    // Define keyDown handler
+    // Define keyDown handler with direct movement implementation
     const handleKeyDown = (e: KeyboardEvent) => {
-      e.preventDefault(); // Prevent default browser behavior
+      // Don't prevent default for all keys to allow browser navigation
+      
       console.log("Key pressed:", e.code);
       
-      // Update key state based on pressed key
-      switch (e.code) {
-        case 'KeyW':
-        case 'ArrowUp':
-          setKeyState(state => ({ ...state, forward: true }));
-          break;
-        case 'KeyS':
-        case 'ArrowDown':
-          setKeyState(state => ({ ...state, backward: true }));
-          break;
-        case 'KeyA':
-        case 'ArrowLeft':
-          setKeyState(state => ({ ...state, left: true }));
-          break;
-        case 'KeyD':
-        case 'ArrowRight':
-          setKeyState(state => ({ ...state, right: true }));
-          break;
-        case 'KeyE':
-          setKeyState(state => ({ ...state, interact: true }));
-          break;
-        case 'Space':
-          setKeyState(state => ({ ...state, jump: true }));
-          break;
+      // Handle directional keys
+      if (e.code === 'KeyW' || e.code === 'ArrowUp') {
+        e.preventDefault();
+        setKeyState(state => ({ ...state, forward: true }));
+        
+        // Apply direct movement to show immediate feedback
+        if (!isInteracting) {
+          const forward = new THREE.Vector3(0, 0, -1);
+          forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+          forward.normalize().multiplyScalar(0.1);
+          
+          const newPos = new THREE.Vector3(position[0], position[1], position[2]).add(forward);
+          updateCameraPosition([newPos.x, position[1], newPos.z]);
+        }
+      }
+      
+      if (e.code === 'KeyS' || e.code === 'ArrowDown') {
+        e.preventDefault();
+        setKeyState(state => ({ ...state, backward: true }));
+        
+        // Apply direct movement
+        if (!isInteracting) {
+          const backward = new THREE.Vector3(0, 0, 1);
+          backward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+          backward.normalize().multiplyScalar(0.1);
+          
+          const newPos = new THREE.Vector3(position[0], position[1], position[2]).add(backward);
+          updateCameraPosition([newPos.x, position[1], newPos.z]);
+        }
+      }
+      
+      if (e.code === 'KeyA' || e.code === 'ArrowLeft') {
+        e.preventDefault();
+        setKeyState(state => ({ ...state, left: true }));
+        
+        // Apply direct movement
+        if (!isInteracting) {
+          const left = new THREE.Vector3(-1, 0, 0);
+          left.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+          left.normalize().multiplyScalar(0.1);
+          
+          const newPos = new THREE.Vector3(position[0], position[1], position[2]).add(left);
+          updateCameraPosition([newPos.x, position[1], newPos.z]);
+        }
+      }
+      
+      if (e.code === 'KeyD' || e.code === 'ArrowRight') {
+        e.preventDefault();
+        setKeyState(state => ({ ...state, right: true }));
+        
+        // Apply direct movement
+        if (!isInteracting) {
+          const right = new THREE.Vector3(1, 0, 0);
+          right.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+          right.normalize().multiplyScalar(0.1);
+          
+          const newPos = new THREE.Vector3(position[0], position[1], position[2]).add(right);
+          updateCameraPosition([newPos.x, position[1], newPos.z]);
+        }
+      }
+      
+      if (e.code === 'KeyE') {
+        e.preventDefault();
+        setKeyState(state => ({ ...state, interact: true }));
+      }
+      
+      if (e.code === 'Space') {
+        e.preventDefault();
+        setKeyState(state => ({ ...state, jump: true }));
       }
     };
     
     // Define keyUp handler
     const handleKeyUp = (e: KeyboardEvent) => {
-      e.preventDefault(); // Prevent default browser behavior
+      // Only prevent default for the keys we care about
+      if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyE', 'Space'].includes(e.code)) {
+        e.preventDefault();
+      }
+      
       console.log("Key released:", e.code);
       
       // Update key state based on released key
@@ -223,7 +273,7 @@ export default function FirstPersonControls() {
       document.removeEventListener('click', focusCanvas);
       clearInterval(interval);
     };
-  }, []);
+  }, [isInteracting, position, rotationY, updateCameraPosition]);
   
   // Main update loop
   useFrame((_, delta) => {

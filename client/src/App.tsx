@@ -1,7 +1,6 @@
 import { Suspense, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Loader, Stats } from "@react-three/drei";
-import { KeyboardControls } from "@react-three/drei";
+import { Loader, Stats, KeyboardControls } from "@react-three/drei";
 
 import Gallery from "./components/gallery/Gallery";
 import MusicPlayer from "./components/player/MusicPlayer";
@@ -74,6 +73,7 @@ function App() {
         </Canvas>
       </KeyboardControls>
       
+      <ControlsHelp />
       <MusicPlayer />
       <Loader />
       {import.meta.env.DEV && <Stats />}
