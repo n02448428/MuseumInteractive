@@ -222,12 +222,14 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
         .copy(camera.position)
         .distanceTo(new THREE.Vector3(...exhibit.position));
       
-      // Select exhibit for showing description when within 5 units
-      if (distance < 5 && !currentExhibit) {
+      // If hovering over the object, select it
+      if (hovered && !currentExhibit) {
         selectExhibit(exhibit);
-      } else if (distance >= 5 && currentExhibit && currentExhibit.id === exhibit.id) {
-        // Clear selection when moving away
-        selectExhibit(null);
+      } else if (!hovered && currentExhibit && currentExhibit.id === exhibit.id) {
+        // Clear selection if not hovering and moving far enough away
+        if (distance > 15) {
+          selectExhibit(null);
+        }
       }
       
       // Always make exhibit face the camera for better visibility

@@ -7,18 +7,20 @@ export default function ExhibitDescription() {
   const { currentExhibit } = interaction;
   const [visible, setVisible] = useState(false);
   
-  // Control visibility with a slight delay for smoother transitions
+  // Show exhibit description when an exhibit is selected
   useEffect(() => {
-    if (currentExhibit) {
-      // Short delay before showing to prevent flickering when walking past exhibits
-      const timer = setTimeout(() => {
-        setVisible(true);
-      }, 200);
-      
-      return () => clearTimeout(timer);
-    } else {
+    if (!currentExhibit) {
       setVisible(false);
+      return;
     }
+    
+    // Always show exhibit description when selected, regardless of distance
+    setVisible(true);
+    
+    // Clean up when component unmounts
+    return () => {
+      setVisible(false);
+    };
   }, [currentExhibit]);
 
   if (!currentExhibit || !visible) {

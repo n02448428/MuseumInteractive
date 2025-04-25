@@ -8,8 +8,8 @@ export default function WallCredit() {
   const [clicked, setClicked] = useState(false);
   const [scale, setScale] = useState(1);
   
-  // Position on back wall behind starting position - centered and slightly higher
-  const position: [number, number, number] = [0, 2.5, -24.9];
+  // Position on opposite wall (front wall)
+  const position: [number, number, number] = [0, 2.5, 24.9];
   
   // Enhanced pulse animation for the text
   useFrame(() => {
@@ -34,7 +34,7 @@ export default function WallCredit() {
   };
   
   return (
-    <group position={position}>
+    <group position={position} rotation={[0, Math.PI, 0]}>
       {/* Background panel for better visibility */}
       <mesh position={[0, 0, -0.01]} scale={[13, 1.2, 0.1]}>
         <planeGeometry />
