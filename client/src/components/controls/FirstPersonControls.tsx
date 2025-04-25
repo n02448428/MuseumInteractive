@@ -19,6 +19,7 @@ interface KeyState {
 }
 
 export default function FirstPersonControls() {
+  // Get direct access to the Three.js camera
   const { camera } = useThree();
   
   // Custom keyboard state implementation
@@ -152,8 +153,15 @@ export default function FirstPersonControls() {
           forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
           forward.normalize().multiplyScalar(0.1);
           
+          // 1. Update our position in state
           const newPos = new THREE.Vector3(position[0], position[1], position[2]).add(forward);
           updateCameraPosition([newPos.x, position[1], newPos.z]);
+          
+          // 2. Directly move the actual Three.js camera
+          camera.position.x += forward.x;
+          camera.position.z += forward.z;
+          
+          console.log("Direct camera move: forward");
         }
       }
       
@@ -167,8 +175,15 @@ export default function FirstPersonControls() {
           backward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
           backward.normalize().multiplyScalar(0.1);
           
+          // 1. Update state
           const newPos = new THREE.Vector3(position[0], position[1], position[2]).add(backward);
           updateCameraPosition([newPos.x, position[1], newPos.z]);
+          
+          // 2. Directly move the actual Three.js camera
+          camera.position.x += backward.x;
+          camera.position.z += backward.z;
+          
+          console.log("Direct camera move: backward");
         }
       }
       
@@ -182,8 +197,15 @@ export default function FirstPersonControls() {
           left.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
           left.normalize().multiplyScalar(0.1);
           
+          // 1. Update state
           const newPos = new THREE.Vector3(position[0], position[1], position[2]).add(left);
           updateCameraPosition([newPos.x, position[1], newPos.z]);
+          
+          // 2. Directly move the actual Three.js camera
+          camera.position.x += left.x;
+          camera.position.z += left.z;
+          
+          console.log("Direct camera move: left");
         }
       }
       
@@ -197,8 +219,15 @@ export default function FirstPersonControls() {
           right.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
           right.normalize().multiplyScalar(0.1);
           
+          // 1. Update state
           const newPos = new THREE.Vector3(position[0], position[1], position[2]).add(right);
           updateCameraPosition([newPos.x, position[1], newPos.z]);
+          
+          // 2. Directly move the actual Three.js camera
+          camera.position.x += right.x;
+          camera.position.z += right.z;
+          
+          console.log("Direct camera move: right");
         }
       }
       

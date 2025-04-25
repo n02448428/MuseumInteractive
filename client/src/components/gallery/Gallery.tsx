@@ -24,12 +24,31 @@ export default function Gallery() {
     console.log("Device is mobile:", isMobile);
   }, [isMobile, setIsMobile]);
   
-  // Initialize camera position
+  // Sync camera with portfolio state
+  const cameraState = usePortfolio(state => state.camera);
+  
   useEffect(() => {
+    // Initial camera setup
     camera.position.set(0, 1.6, 5);
     camera.rotation.set(0, 0, 0);
     camera.lookAt(new THREE.Vector3(0, 1.6, 0));
+    
+    console.log("Initial camera position set");
   }, [camera]);
+  
+  // Keep camera in sync with portfolio state
+  useEffect(() => {
+    const { position, lookAt } = cameraState;
+    
+    // Update camera position
+    camera.position.set(position[0], position[1], position[2]);
+    
+    // Update camera look direction
+    const lookAtVector = new THREE.Vector3(lookAt[0], lookAt[1], lookAt[2]);
+    camera.lookAt(lookAtVector);
+    
+    console.log("Camera synced with state:", position, lookAt);
+  }, [camera, cameraState]);
   
   // Create gallery dimensions
   const GALLERY_WIDTH = 50;
