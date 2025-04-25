@@ -185,7 +185,7 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
     }, path.length * 1000); // Roughly estimate travel time
   };
   
-  // Check distance to camera to show label and hover effect
+  // Check distance to camera to show label and hover effect with improved visibility
   useFrame(() => {
     if (objectRef.current && camera) {
       const distance = new THREE.Vector3()
@@ -193,7 +193,21 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
         .distanceTo(new THREE.Vector3(...exhibit.position));
       
       // Show label and hover effects when close enough - increased distance for better visibility
-      setHovered(distance < 15);
+      // Using a larger distance to make exhibits more noticeable from far away
+      setHovered(distance < 18);
+      
+      // Always make exhibit face the camera for better visibility
+      if (objectRef.current) {
+        const direction = new THREE.Vector3();
+        direction.subVectors(
+          new THREE.Vector3(camera.position.x, exhibit.position[1], camera.position.z),
+          new THREE.Vector3(...exhibit.position)
+        ).normalize();
+        
+        // Only rotate around Y axis to keep objects upright
+        const angle = Math.atan2(direction.x, direction.z);
+        objectRef.current.rotation.y = angle;
+      }
     }
   });
   
@@ -384,13 +398,15 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
     <group 
       ref={objectRef}
       position={exhibit.position}
-      rotation={exhibit.rotation}
       scale={exhibit.scale}
       onClick={handleClick}
     >
-      {renderObject()}
+      {/* Create a nested group that doesn't rotate with the camera */}
+      <group rotation={exhibit.rotation}>
+        {renderObject()}
+      </group>
       
-      {/* Exhibit title */}
+      {/* Exhibit title - always facing the camera */}
       <Text
         position={[0, 1.2, 0]}
         fontSize={0.2}
