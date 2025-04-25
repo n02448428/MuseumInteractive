@@ -10,17 +10,21 @@ interface TouchPosition {
 }
 
 export default function MobileControls() {
+  // All portfolio hooks first
   const { 
-    updateCameraPosition, 
+    updateCameraPosition,
     updateCameraLookAt,
     setCameraMoving,
-    camera: { position, lookAt }, 
+    camera: { position, lookAt },
     interaction: { isInteracting },
     isMobile,
     path
   } = usePortfolio();
 
-  // Initialize all state hooks unconditionally at the top
+  // Exit early if not mobile
+  if (!isMobile) return null;
+
+  // All state hooks
   const [showControls, setShowControls] = useState(true);
   const [joystickActive, setJoystickActive] = useState(false);
   const [joystickPos, setJoystickPos] = useState<TouchPosition>({ x: 0, y: 0 });
@@ -31,59 +35,52 @@ export default function MobileControls() {
 
   // Movement effect
   useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
-    
-    if (joystickActive && !isInteracting && !path.active) {
-      interval = setInterval(() => {
-        const forward = new THREE.Vector3(
-          lookAt[0] - position[0],
-          0,
-          lookAt[2] - position[2]
-        ).normalize();
-        const right = new THREE.Vector3(forward.z, 0, -forward.x);
-        const moveSpeed = 0.1;
-        const movement = new THREE.Vector3();
-        movement.addScaledVector(forward, -moveVector.y * moveSpeed);
-        movement.addScaledVector(right, moveVector.x * moveSpeed);
+    if (!joystickActive || isInteracting || path.active) return;
 
-        if (movement.length() > 0) {
-          setCameraMoving(true);
-          const newPos = new THREE.Vector3(...position).add(movement);
-          const minX = -25, maxX = 25;
-          const minZ = -25, maxZ = 25;
-          newPos.x = THREE.MathUtils.clamp(newPos.x, minX, maxX);
-          newPos.z = THREE.MathUtils.clamp(newPos.z, minZ, maxZ);
-          updateCameraPosition([newPos.x, position[1], newPos.z]);
-        } else {
-          setCameraMoving(false);
-        }
-      }, 16);
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    const interval = setInterval(() => {
+      const forward = new THREE.Vector3(
+        lookAt[0] - position[0],
+        0,
+        lookAt[2] - position[2]
+      ).normalize();
+      const right = new THREE.Vector3(forward.z, 0, -forward.x);
+      const moveSpeed = 0.1;
+      const movement = new THREE.Vector3();
+      movement.addScaledVector(forward, -moveVector.y * moveSpeed);
+      movement.addScaledVector(right, moveVector.x * moveSpeed);
+
+      if (movement.length() > 0) {
+        setCameraMoving(true);
+        const newPos = new THREE.Vector3(...position).add(movement);
+        const minX = -25, maxX = 25;
+        const minZ = -25, maxZ = 25;
+        newPos.x = THREE.MathUtils.clamp(newPos.x, minX, maxX);
+        newPos.z = THREE.MathUtils.clamp(newPos.z, minZ, maxZ);
+        updateCameraPosition([newPos.x, position[1], newPos.z]);
+      } else {
+        setCameraMoving(false);
+      }
+    }, 16);
+
+    return () => clearInterval(interval);
   }, [joystickActive, moveVector, position, lookAt, updateCameraPosition, isInteracting, path.active, setCameraMoving]);
 
   // Look effect
   useEffect(() => {
-    if (lookActive && !isInteracting) {
-      const currentDir = new THREE.Vector3(
-        lookAt[0] - position[0],
-        0,
-        lookAt[2] - position[2]
-      );
-      const lookSpeed = 0.01;
-      const angle = -lookDelta.x * lookSpeed;
-      currentDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
-      const newLookAt = new THREE.Vector3(...position).add(currentDir);
-      updateCameraLookAt([newLookAt.x, lookAt[1], newLookAt.z]);
-      setLookDelta({ x: 0, y: 0 });
-    }
-  }, [lookActive, lookDelta, position, lookAt, updateCameraLookAt, isInteracting]);
+    if (!lookActive || isInteracting) return;
 
-  // Skip rendering if not on mobile
-  if (!isMobile) return null;
+    const currentDir = new THREE.Vector3(
+      lookAt[0] - position[0],
+      0,
+      lookAt[2] - position[2]
+    );
+    const lookSpeed = 0.01;
+    const angle = -lookDelta.x * lookSpeed;
+    currentDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+    const newLookAt = new THREE.Vector3(...position).add(currentDir);
+    updateCameraLookAt([newLookAt.x, lookAt[1], newLookAt.z]);
+    setLookDelta({ x: 0, y: 0 });
+  }, [lookActive, lookDelta, position, lookAt, updateCameraLookAt, isInteracting]);
 
   const handleJoystickStart = (e: React.TouchEvent) => {
     e.preventDefault();
@@ -150,7 +147,7 @@ export default function MobileControls() {
   };
 
   return (
-    <div className="mobile-controls">
+    <>
       <button 
         className="mobile-controls-toggle"
         onClick={toggleControls}
@@ -160,7 +157,7 @@ export default function MobileControls() {
       </button>
 
       {showControls && (
-        <>
+        <div className="mobile-controls">
           <div 
             className="mobile-joystick-area"
             onTouchStart={handleJoystickStart}
@@ -191,8 +188,8 @@ export default function MobileControls() {
               Look
             </div>
           </div>
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 }
