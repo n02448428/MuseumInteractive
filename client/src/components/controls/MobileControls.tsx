@@ -21,7 +21,7 @@ export default function MobileControls() {
     path
   } = usePortfolio();
 
-  // All state hooks - must be defined unconditionally
+  // All state hooks must be defined unconditionally before any conditional returns
   const [showControls, setShowControls] = useState(true);
   const [joystickActive, setJoystickActive] = useState(false);
   const [joystickPos, setJoystickPos] = useState<TouchPosition>({ x: 0, y: 0 });
@@ -30,9 +30,12 @@ export default function MobileControls() {
   const [lookDelta, setLookDelta] = useState<TouchPosition>({ x: 0, y: 0 });
   const [startTouch, setStartTouch] = useState<TouchPosition>({ x: 0, y: 0 });
 
+  // Early return pattern after all hooks are defined
+  if (!isMobile) return null;
+
   // Movement effect
   useEffect(() => {
-    if (!joystickActive || isInteracting || path.active || !isMobile) return;
+    if (!joystickActive || isInteracting || path.active) return;
 
     const interval = setInterval(() => {
       const forward = new THREE.Vector3(
@@ -60,11 +63,11 @@ export default function MobileControls() {
     }, 16);
 
     return () => clearInterval(interval);
-  }, [joystickActive, moveVector, position, lookAt, updateCameraPosition, isInteracting, path.active, setCameraMoving, isMobile]);
+  }, [joystickActive, moveVector, position, lookAt, updateCameraPosition, isInteracting, path.active, setCameraMoving]);
 
   // Look effect
   useEffect(() => {
-    if (!lookActive || isInteracting || !isMobile) return;
+    if (!lookActive || isInteracting) return;
 
     const currentDir = new THREE.Vector3(
       lookAt[0] - position[0],
@@ -77,7 +80,7 @@ export default function MobileControls() {
     const newLookAt = new THREE.Vector3(...position).add(currentDir);
     updateCameraLookAt([newLookAt.x, lookAt[1], newLookAt.z]);
     setLookDelta({ x: 0, y: 0 });
-  }, [lookActive, lookDelta, position, lookAt, updateCameraLookAt, isInteracting, isMobile]);
+  }, [lookActive, lookDelta, position, lookAt, updateCameraLookAt, isInteracting]);
 
   const handleJoystickStart = (e: React.TouchEvent) => {
     e.preventDefault();
@@ -142,9 +145,6 @@ export default function MobileControls() {
   const toggleControls = () => {
     setShowControls(!showControls);
   };
-
-  // Early return pattern after all hooks are defined
-  if (!isMobile) return null;
 
   return (
     <>
