@@ -419,9 +419,9 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
         {exhibit.title}
       </Text>
       
-      {/* Enhanced hover description */}
+      {/* Enhanced hover description - positioned below the exhibit */}
       {hovered && (
-        <Html position={[0, -1, 0]} center transform distanceFactor={10}>
+        <Html position={[0, -2.5, 0]} center transform distanceFactor={12}>
           <div style={{
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             color: 'white',
@@ -432,7 +432,8 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
             textAlign: 'center',
             boxShadow: '0 0 10px rgba(0,0,0,0.5)',
             pointerEvents: 'none',
-            transition: 'all 0.3s ease'
+            transition: 'all 0.3s ease',
+            zIndex: 100
           }}>
             <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold' }}>{exhibit.title}</h3>
             <p style={{ margin: '0 0 8px 0', opacity: 0.9 }}>{exhibit.description}</p>

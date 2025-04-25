@@ -54,7 +54,7 @@ function App() {
       <KeyboardControls map={keyMap}>
         <Canvas
           shadows
-          camera={{ position: [0, 1.6, 5], fov: 75, near: 0.1, far: 1000 }}
+          camera={{ position: [0, 1.8, 0], fov: 75, near: 0.1, far: 1000 }}
           gl={{ 
             antialias: true,
             logarithmicDepthBuffer: true,
