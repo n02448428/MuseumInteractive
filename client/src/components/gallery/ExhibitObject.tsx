@@ -468,28 +468,7 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
         {exhibit.title}
       </Text>
       
-      {/* Enhanced hover description - positioned below the exhibit */}
-      {hovered && (
-        <Html position={[0, -2.5, 0]} center transform distanceFactor={12}>
-          <div style={{
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            color: 'white',
-            padding: '0.8rem 1.2rem',
-            borderRadius: '8px',
-            fontSize: '14px',
-            maxWidth: '300px',
-            textAlign: 'center',
-            boxShadow: '0 0 10px rgba(0,0,0,0.5)',
-            pointerEvents: 'none',
-            transition: 'all 0.3s ease',
-            zIndex: 100
-          }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold' }}>{exhibit.title}</h3>
-            <p style={{ margin: '0 0 8px 0', opacity: 0.9 }}>{exhibit.description}</p>
-            <p style={{ margin: '0', color: '#4ade80', fontWeight: 'bold', fontSize: '13px' }}>Click to explore</p>
-          </div>
-        </Html>
-      )}
+      {/* Removed hover description - now only shown at bottom left */}
       
     </group>
   );

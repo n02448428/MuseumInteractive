@@ -23,20 +23,48 @@ export default function GalleryText() {
   const startPosition = new THREE.Vector3(0, 1.8, 0);
   const movementThreshold = 0.05; // How much movement is considered "moving"
   
-  // Update text visibility - always visible
+  // Update text visibility based on movement
   useFrame(() => {
     if (!camera) return;
     
-    // Always keep text visible regardless of camera position or movement
-    setShouldShow(true);
+    // Check if camera is moving
+    if (lastPosition) {
+      const distance = camera.position.distanceTo(lastPosition);
+      
+      if (distance > movementThreshold) {
+        // Camera is moving
+        setIsMoving(true);
+        
+        // Clear any existing timer
+        if (movementTimer) clearTimeout(movementTimer);
+        
+        // Set new timer to check when movement stops
+        const timer = setTimeout(() => {
+          setIsMoving(false);
+        }, 3000); // 3 seconds after movement stops
+        
+        setMovementTimer(timer as unknown as NodeJS.Timeout);
+        
+        // Fade out text while moving
+        if (fadeOpacity > 0) {
+          setFadeOpacity(Math.max(fadeOpacity - 0.05, 0));
+        }
+      } else if (isMoving === false) {
+        // Fade in text when not moving
+        if (fadeOpacity < 1) {
+          setFadeOpacity(Math.min(fadeOpacity + 0.02, 1)); // Slower fade in
+        }
+      }
+    }
     
-    // Only hide when interacting with exhibits
+    // Update last position for next frame
+    setLastPosition(camera.position.clone());
+    
+    // Always hide when interacting with exhibits
     if (isInteracting || showProjectDetails) {
       if (fadeOpacity > 0) {
         setFadeOpacity(Math.max(fadeOpacity - 0.05, 0));
       }
-    } else if (fadeOpacity < 1) {
-      setFadeOpacity(Math.min(fadeOpacity + 0.05, 1));
     }
   });
   
@@ -51,10 +79,10 @@ export default function GalleryText() {
   
   return (
     <>
-      {/* Header text */}
+      {/* Header text - positioned higher */}
       <Text
-        position={[0, 2.5, -4]}
-        fontSize={0.3}
+        position={[0, 3.5, -4]}
+        fontSize={0.4}
         color="black"
         anchorX="center"
         anchorY="middle"
@@ -68,8 +96,8 @@ export default function GalleryText() {
       
       {/* Footer text */}
       <Text
-        position={[0, 0.5, -4]}
-        fontSize={0.2}
+        position={[0, 3.0, -4]}
+        fontSize={0.25}
         color="black"
         anchorX="center"
         anchorY="middle"
