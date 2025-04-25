@@ -142,7 +142,6 @@ export default function Gallery() {
       
       {/* Controls */}
       <FirstPersonControls />
-      <MobileControls />
       
       {/* Load project data */}
       <ProjectLoader />

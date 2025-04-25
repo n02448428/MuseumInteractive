@@ -7,6 +7,7 @@ import Gallery from "./components/gallery/Gallery";
 import MusicPlayer from "./components/player/MusicPlayer";
 import ProjectDetails from "./components/gallery/ProjectDetails";
 import ExhibitDescription from "./components/gallery/ExhibitDescription";
+import MobileControls from "./components/controls/MobileControls";
 import { useAudio } from "./lib/stores/useAudio";
 import { queryClient } from "./lib/queryClient";
 
@@ -80,6 +81,7 @@ function App() {
         <MusicPlayer />
         <ProjectDetails />
         <ExhibitDescription />
+        <MobileControls />
         <Loader />
         {import.meta.env.DEV && <Stats />}
       </div>
