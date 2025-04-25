@@ -4,9 +4,10 @@ import * as THREE from 'three';
 import { usePortfolio } from '../../lib/stores/usePortfolio';
 import { Controls } from '../../App';
 
-const MOVE_SPEED = 0.15;
-const LOOK_SPEED = 2;
-const COLLISION_DISTANCE = 0.5;
+// Movement settings
+const MOVE_SPEED = 0.1; // Slower movement for more control
+const ROTATION_SPEED = 0.02; 
+const LOOK_SPEED = 2.0;
 
 // Define keyboard state interface
 interface KeyState {
@@ -48,26 +49,29 @@ export default function FirstPersonControls() {
     camera: { position, moving }
   } = usePortfolio();
   
-  // Handle mouse movements for looking around
+  // Handle mouse movements for looking around - completely simplified for stability
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
-      if (isInteracting) return; // Disable camera rotation during interactions
+      // Only track rotation if we're not interacting with UI and right mouse button is pressed
+      if (isInteracting || event.buttons !== 2) return;
       
-      // Only update camera direction if right mouse button is pressed
-      if (event.buttons === 2) {
-        rotationY.current -= event.movementX * 0.002 * LOOK_SPEED;
-        
-        // Update camera direction based on mouse movement
-        const forward = new THREE.Vector3(0, 0, -1);
-        forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-        
-        const target = new THREE.Vector3().addVectors(
-          new THREE.Vector3(...position),
-          forward
-        );
-        
-        updateCameraLookAt([target.x, target.y, target.z]);
-      }
+      // Update our rotation tracking variable 
+      rotationY.current -= event.movementX * ROTATION_SPEED;
+      
+      // Update the camera's rotation directly
+      const forward = new THREE.Vector3(0, 0, -1);
+      forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+      forward.normalize();
+      
+      // Calculate new look-at point (1 unit in front of camera)
+      const currentPos = camera.position.clone();
+      const targetPos = currentPos.clone().add(forward);
+      
+      // Update both the camera and our state
+      camera.lookAt(targetPos);
+      updateCameraLookAt([targetPos.x, targetPos.y, targetPos.z]);
+      
+      console.log("Camera rotated: ", rotationY.current);
     };
     
     // Prevent context menu on right-click
@@ -84,7 +88,7 @@ export default function FirstPersonControls() {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('contextmenu', handleContextMenu);
     };
-  }, [isInteracting, position, updateCameraLookAt]);
+  }, [isInteracting, camera, updateCameraLookAt]);
   
   // Handle autonomous path following - simplified for direct camera control
   const followPath = () => {
@@ -131,7 +135,7 @@ export default function FirstPersonControls() {
     return true;
   };
 
-  // Set up keyboard listeners for manual key handling
+  // Set up keyboard listeners - simplified to only update state, no direct movement
   useEffect(() => {
     // Log current keyState periodically but less often
     const logKeyState = () => {
@@ -139,143 +143,88 @@ export default function FirstPersonControls() {
     };
     const interval = setInterval(logKeyState, 5000);
     
-    // Define keyDown handler with direct movement implementation
+    // Simple keyDown handler that only updates state
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't prevent default for all keys to allow browser navigation
-      
-      console.log("Key pressed:", e.code);
-      
-      // Handle directional keys
-      if (e.code === 'KeyW' || e.code === 'ArrowUp') {
-        e.preventDefault();
-        setKeyState(state => ({ ...state, forward: true }));
-        
-        // Apply direct movement to show immediate feedback
-        if (!isInteracting) {
-          const forward = new THREE.Vector3(0, 0, -1);
-          forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-          forward.normalize().multiplyScalar(0.1);
+      // Process direction controls
+      switch(e.code) {
+        case 'KeyW':
+        case 'ArrowUp':
+          e.preventDefault();
+          setKeyState(state => ({ ...state, forward: true }));
+          console.log("Key set: forward = true");
+          break;
           
-          // 1. Update our position in state
-          const newPos = new THREE.Vector3(position[0], position[1], position[2]).add(forward);
-          updateCameraPosition([newPos.x, position[1], newPos.z]);
+        case 'KeyS':
+        case 'ArrowDown':
+          e.preventDefault();
+          setKeyState(state => ({ ...state, backward: true }));
+          console.log("Key set: backward = true");
+          break;
           
-          // 2. Directly move the actual Three.js camera
-          camera.position.x += forward.x;
-          camera.position.z += forward.z;
+        case 'KeyA':
+        case 'ArrowLeft':
+          e.preventDefault();
+          setKeyState(state => ({ ...state, left: true }));
+          console.log("Key set: left = true");
+          break;
           
-          console.log("Direct camera move: forward");
-        }
-      }
-      
-      if (e.code === 'KeyS' || e.code === 'ArrowDown') {
-        e.preventDefault();
-        setKeyState(state => ({ ...state, backward: true }));
-        
-        // Apply direct movement
-        if (!isInteracting) {
-          const backward = new THREE.Vector3(0, 0, 1);
-          backward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-          backward.normalize().multiplyScalar(0.1);
+        case 'KeyD':
+        case 'ArrowRight':
+          e.preventDefault();
+          setKeyState(state => ({ ...state, right: true }));
+          console.log("Key set: right = true");
+          break;
           
-          // 1. Update state
-          const newPos = new THREE.Vector3(position[0], position[1], position[2]).add(backward);
-          updateCameraPosition([newPos.x, position[1], newPos.z]);
+        case 'KeyE':
+          e.preventDefault();
+          setKeyState(state => ({ ...state, interact: true }));
+          break;
           
-          // 2. Directly move the actual Three.js camera
-          camera.position.x += backward.x;
-          camera.position.z += backward.z;
-          
-          console.log("Direct camera move: backward");
-        }
-      }
-      
-      if (e.code === 'KeyA' || e.code === 'ArrowLeft') {
-        e.preventDefault();
-        setKeyState(state => ({ ...state, left: true }));
-        
-        // Apply direct movement
-        if (!isInteracting) {
-          const left = new THREE.Vector3(-1, 0, 0);
-          left.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-          left.normalize().multiplyScalar(0.1);
-          
-          // 1. Update state
-          const newPos = new THREE.Vector3(position[0], position[1], position[2]).add(left);
-          updateCameraPosition([newPos.x, position[1], newPos.z]);
-          
-          // 2. Directly move the actual Three.js camera
-          camera.position.x += left.x;
-          camera.position.z += left.z;
-          
-          console.log("Direct camera move: left");
-        }
-      }
-      
-      if (e.code === 'KeyD' || e.code === 'ArrowRight') {
-        e.preventDefault();
-        setKeyState(state => ({ ...state, right: true }));
-        
-        // Apply direct movement
-        if (!isInteracting) {
-          const right = new THREE.Vector3(1, 0, 0);
-          right.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-          right.normalize().multiplyScalar(0.1);
-          
-          // 1. Update state
-          const newPos = new THREE.Vector3(position[0], position[1], position[2]).add(right);
-          updateCameraPosition([newPos.x, position[1], newPos.z]);
-          
-          // 2. Directly move the actual Three.js camera
-          camera.position.x += right.x;
-          camera.position.z += right.z;
-          
-          console.log("Direct camera move: right");
-        }
-      }
-      
-      if (e.code === 'KeyE') {
-        e.preventDefault();
-        setKeyState(state => ({ ...state, interact: true }));
-      }
-      
-      if (e.code === 'Space') {
-        e.preventDefault();
-        setKeyState(state => ({ ...state, jump: true }));
+        case 'Space':
+          e.preventDefault();
+          setKeyState(state => ({ ...state, jump: true }));
+          break;
       }
     };
     
-    // Define keyUp handler
+    // Simple keyUp handler
     const handleKeyUp = (e: KeyboardEvent) => {
-      // Only prevent default for the keys we care about
-      if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyE', 'Space'].includes(e.code)) {
-        e.preventDefault();
-      }
-      
-      console.log("Key released:", e.code);
-      
-      // Update key state based on released key
-      switch (e.code) {
+      switch(e.code) {
         case 'KeyW':
         case 'ArrowUp':
+          e.preventDefault();
           setKeyState(state => ({ ...state, forward: false }));
+          console.log("Key set: forward = false");
           break;
+          
         case 'KeyS':
         case 'ArrowDown':
+          e.preventDefault();
           setKeyState(state => ({ ...state, backward: false }));
+          console.log("Key set: backward = false");
           break;
+          
         case 'KeyA':
         case 'ArrowLeft':
+          e.preventDefault();
           setKeyState(state => ({ ...state, left: false }));
+          console.log("Key set: left = false");
           break;
+          
         case 'KeyD':
         case 'ArrowRight':
+          e.preventDefault();
           setKeyState(state => ({ ...state, right: false }));
+          console.log("Key set: right = false");
           break;
+          
         case 'KeyE':
+          e.preventDefault();
           setKeyState(state => ({ ...state, interact: false }));
           break;
+          
         case 'Space':
+          e.preventDefault();
           setKeyState(state => ({ ...state, jump: false }));
           break;
       }
@@ -305,9 +254,9 @@ export default function FirstPersonControls() {
       document.removeEventListener('click', focusCanvas);
       clearInterval(interval);
     };
-  }, [isInteracting, position, rotationY, updateCameraPosition]);
+  }, []);
   
-  // Main update loop - much more direct implementation
+  // Main update loop - extremely simplified for stability
   useFrame(() => {
     // If we're following a path, prioritize that movement
     if (path.active) {
@@ -318,7 +267,7 @@ export default function FirstPersonControls() {
     // Otherwise, handle manual keyboard controls
     if (isInteracting) return; // Disable movement during interactions
     
-    // Use our custom keyState for simplified direct movement
+    // Use our custom keyState for simplified movement
     const moveForward = keyState.forward;
     const moveBackward = keyState.backward;
     const moveLeft = keyState.left;
@@ -328,57 +277,33 @@ export default function FirstPersonControls() {
       return;
     }
     
-    // Direct camera movement
-    if (moveForward) {
-      const forward = new THREE.Vector3(0, 0, -1);
-      forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-      forward.normalize().multiplyScalar(MOVE_SPEED);
-      
-      // Move camera directly
-      camera.position.x += forward.x;
-      camera.position.z += forward.z;
-      
-      // Keep store in sync with camera
-      updateCameraPosition([camera.position.x, camera.position.y, camera.position.z]);
-    }
+    // Calculate the movement direction vector
+    const moveDir = new THREE.Vector3(0, 0, 0);
     
-    if (moveBackward) {
-      const backward = new THREE.Vector3(0, 0, 1);
-      backward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-      backward.normalize().multiplyScalar(MOVE_SPEED);
-      
-      // Move camera directly
-      camera.position.x += backward.x;
-      camera.position.z += backward.z;
-      
-      // Keep store in sync with camera
-      updateCameraPosition([camera.position.x, camera.position.y, camera.position.z]);
-    }
+    // Calculate the forward vector based on camera rotation
+    const forward = new THREE.Vector3(0, 0, -1);
+    forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
     
-    if (moveLeft) {
-      const left = new THREE.Vector3(-1, 0, 0);
-      left.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-      left.normalize().multiplyScalar(MOVE_SPEED);
-      
-      // Move camera directly
-      camera.position.x += left.x;
-      camera.position.z += left.z;
-      
-      // Keep store in sync with camera
-      updateCameraPosition([camera.position.x, camera.position.y, camera.position.z]);
-    }
+    // Calculate the right vector from the forward vector
+    const right = new THREE.Vector3(1, 0, 0);
+    right.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
     
-    if (moveRight) {
-      const right = new THREE.Vector3(1, 0, 0);
-      right.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-      right.normalize().multiplyScalar(MOVE_SPEED);
+    // Add movement in each direction
+    if (moveForward) moveDir.add(forward);
+    if (moveBackward) moveDir.sub(forward);
+    if (moveRight) moveDir.add(right);
+    if (moveLeft) moveDir.sub(right);
+    
+    // Normalize and apply speed if we have movement
+    if (moveDir.length() > 0) {
+      moveDir.normalize().multiplyScalar(MOVE_SPEED);
       
-      // Move camera directly
-      camera.position.x += right.x;
-      camera.position.z += right.z;
+      // Move camera directly (only X and Z, keeping Y constant)
+      camera.position.x += moveDir.x;
+      camera.position.z += moveDir.z;
       
-      // Keep store in sync with camera
-      updateCameraPosition([camera.position.x, camera.position.y, camera.position.z]);
+      // Log what's happening
+      console.log("Moving camera:", moveDir);
     }
     
     // Basic collision detection with gallery bounds
@@ -389,8 +314,13 @@ export default function FirstPersonControls() {
     camera.position.x = THREE.MathUtils.clamp(camera.position.x, minX, maxX);
     camera.position.z = THREE.MathUtils.clamp(camera.position.z, minZ, maxZ);
     
-    // Ensure store is in sync with camera's final position after clamping
+    // Keep store in sync with camera
     updateCameraPosition([camera.position.x, camera.position.y, camera.position.z]);
+    
+    // Update camera look direction 
+    const lookTarget = camera.position.clone();
+    lookTarget.add(forward); // Look forward in the direction we're facing
+    camera.lookAt(lookTarget);
   });
 
   return null;
