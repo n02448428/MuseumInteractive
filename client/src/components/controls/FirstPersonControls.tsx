@@ -409,14 +409,16 @@ export default function FirstPersonControls() {
     
     // Apply movement if we have any
     if (moveDir.length() > 0) {
-      moveDir.normalize().multiplyScalar(MOVE_SPEED);
+      // Use sprint speed if shift is pressed, otherwise normal speed
+      const currentSpeed = keyState.sprint ? SPRINT_SPEED : MOVE_SPEED;
+      moveDir.normalize().multiplyScalar(currentSpeed);
       
       // Move camera directly (only X and Z, keeping Y constant)
       camera.position.x += moveDir.x;
       camera.position.z += moveDir.z;
       
       // Log what's happening
-      console.log("Moving camera:", moveDir);
+      console.log(keyState.sprint ? "Sprinting" : "Walking", moveDir);
     }
     
     // Basic collision detection with gallery bounds

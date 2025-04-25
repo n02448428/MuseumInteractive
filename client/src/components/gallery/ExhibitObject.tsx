@@ -185,16 +185,15 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
     }, path.length * 1000); // Roughly estimate travel time
   };
   
-  // Check distance to camera to show label and hover effect with improved visibility
+  // Check distance to camera and handle hover state
   useFrame(() => {
     if (objectRef.current && camera) {
       const distance = new THREE.Vector3()
         .copy(camera.position)
         .distanceTo(new THREE.Vector3(...exhibit.position));
       
-      // Show label and hover effects when close enough - increased distance for better visibility
-      // Using a larger distance to make exhibits more noticeable from far away
-      setHovered(distance < 18);
+      // Only highlight the object when close enough
+      // Do NOT set hovered state here - that's for actual mouse hover only
       
       // Always make exhibit face the camera for better visibility
       if (objectRef.current) {
@@ -394,12 +393,27 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
     }
   };
   
+  // Pointer events for proper hover behavior
+  const handlePointerOver = () => {
+    setHovered(true);
+    if (!hoveredOnce) {
+      playHit();
+      setHoveredOnce(true);
+    }
+  };
+  
+  const handlePointerOut = () => {
+    setHovered(false);
+  };
+
   return (
     <group 
       ref={objectRef}
       position={exhibit.position}
       scale={exhibit.scale}
       onClick={handleClick}
+      onPointerOver={handlePointerOver}
+      onPointerOut={handlePointerOut}
     >
       {/* Create a nested group that doesn't rotate with the camera */}
       <group rotation={exhibit.rotation}>
