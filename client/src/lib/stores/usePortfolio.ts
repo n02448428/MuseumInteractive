@@ -2,11 +2,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { Exhibit, Project, ProjectCategory, InteractionState, CameraState, NavigationPath, Vec3 } from '../types';
 import { exhibits } from '../../projects/index';
-import { musicProjects } from '../../projects/music';
-import { poetryProjects } from '../../projects/poetry';
-import { artProjects } from '../../projects/art';
-import { techProjects } from '../../projects/tech';
-import { socialProjects } from '../../projects/social';
+// We'll be loading project data from JSON files through API queries
 
 interface PortfolioState {
   // Camera and player state
@@ -31,6 +27,7 @@ interface PortfolioState {
   // Project data
   exhibits: Exhibit[];
   getProjectsByCategory: (category: ProjectCategory) => Project[];
+  updateProjects: (category: ProjectCategory, projects: Project[]) => void;
   
   // UI States
   showProjectDetails: boolean;
@@ -39,13 +36,14 @@ interface PortfolioState {
   setIsMobile: (isMobile: boolean) => void;
 }
 
-// Projects by category cache to avoid recalculation
-const projectsByCategory = {
-  [ProjectCategory.MUSIC]: musicProjects,
-  [ProjectCategory.POETRY]: poetryProjects,
-  [ProjectCategory.ART]: artProjects,
-  [ProjectCategory.TECH]: techProjects,
-  [ProjectCategory.SOCIAL]: socialProjects,
+// Projects by category will be loaded dynamically from JSON files
+// We'll be using empty arrays as initial values
+const projectsByCategory: Record<ProjectCategory, Project[]> = {
+  [ProjectCategory.MUSIC]: [],
+  [ProjectCategory.POETRY]: [],
+  [ProjectCategory.ART]: [],
+  [ProjectCategory.TECH]: [],
+  [ProjectCategory.SOCIAL]: [],
 };
 
 export const usePortfolio = create<PortfolioState>()(
@@ -109,6 +107,10 @@ export const usePortfolio = create<PortfolioState>()(
     // Project data
     exhibits,
     getProjectsByCategory: (category) => projectsByCategory[category] || [],
+    updateProjects: (category, projects) => {
+      projectsByCategory[category] = projects;
+      console.log(`Updated ${category} projects:`, projects);
+    },
     
     // UI States
     showProjectDetails: false,
