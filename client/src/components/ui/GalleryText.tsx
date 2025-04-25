@@ -23,7 +23,7 @@ export default function GalleryText() {
   const startPosition = new THREE.Vector3(0, 1.8, 0);
   const movementThreshold = 0.05; // How much movement is considered "moving"
   
-  // Update text visibility based on movement
+  // Enhanced text visibility based on movement
   useFrame(() => {
     if (!camera) return;
     
@@ -32,27 +32,29 @@ export default function GalleryText() {
       const distance = camera.position.distanceTo(lastPosition);
       
       if (distance > movementThreshold) {
-        // Camera is moving
+        // Camera is moving - fade out faster
         setIsMoving(true);
         
         // Clear any existing timer
         if (movementTimer) clearTimeout(movementTimer);
         
-        // Set new timer to check when movement stops
+        // Set new timer with shorter delay to detect stopped movement
         const timer = setTimeout(() => {
           setIsMoving(false);
-        }, 3000); // 3 seconds after movement stops
+        }, 1500); // 1.5 seconds after movement stops
         
         setMovementTimer(timer as unknown as NodeJS.Timeout);
         
-        // Fade out text while moving
+        // Fade out text more quickly while moving
         if (fadeOpacity > 0) {
-          setFadeOpacity(Math.max(fadeOpacity - 0.05, 0));
+          setFadeOpacity(Math.max(fadeOpacity - 0.08, 0));
         }
       } else if (isMoving === false) {
-        // Fade in text when not moving
+        // Camera stopped - fade in with slight delay for smoother experience
         if (fadeOpacity < 1) {
-          setFadeOpacity(Math.min(fadeOpacity + 0.02, 1)); // Slower fade in
+          // Start fade-in a bit slower, then accelerate
+          const fadeSpeed = fadeOpacity < 0.3 ? 0.01 : 0.03;
+          setFadeOpacity(Math.min(fadeOpacity + fadeSpeed, 1));
         }
       }
     }
@@ -63,7 +65,8 @@ export default function GalleryText() {
     // Always hide when interacting with exhibits
     if (isInteracting || showProjectDetails) {
       if (fadeOpacity > 0) {
-        setFadeOpacity(Math.max(fadeOpacity - 0.05, 0));
+        // Hide quickly when interacting
+        setFadeOpacity(Math.max(fadeOpacity - 0.1, 0));
       }
     }
   });
@@ -81,12 +84,12 @@ export default function GalleryText() {
     <>
       {/* Header text - positioned higher */}
       <Text
-        position={[0, 3.5, -4]}
-        fontSize={0.4}
+        position={[0, 4.2, -4]} // Positioned higher on screen
+        fontSize={0.5} // Slightly larger
         color="black"
         anchorX="center"
         anchorY="middle"
-        outlineWidth={0.01}
+        outlineWidth={0.015}
         outlineColor="#ffffff"
         material-transparent={true}
         material-opacity={fadeOpacity}
@@ -96,12 +99,12 @@ export default function GalleryText() {
       
       {/* Footer text */}
       <Text
-        position={[0, 3.0, -4]}
-        fontSize={0.25}
+        position={[0, 3.7, -4]} // Also positioned higher
+        fontSize={0.3} // Slightly larger
         color="black"
         anchorX="center"
         anchorY="middle"
-        outlineWidth={0.008}
+        outlineWidth={0.01}
         outlineColor="#ffffff"
         material-transparent={true}
         material-opacity={fadeOpacity}
