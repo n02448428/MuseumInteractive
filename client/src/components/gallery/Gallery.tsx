@@ -26,10 +26,10 @@ export default function Gallery() {
   
   // One-time camera initialization - all subsequent camera control is done in the FirstPersonControls component
   useEffect(() => {
-    // Initial camera setup - positioned at the back wall so all five exhibits are visible
-    camera.position.set(0, 1.6, 22); // Positioned at back wall
-    camera.rotation.set(0, Math.PI, 0); // Looking toward the center
-    camera.lookAt(new THREE.Vector3(0, 1.6, 0));
+    // Initial camera setup - positioned to view the semicircle of exhibits
+    camera.position.set(0, 1.8, 0); // Positioned at the center of the gallery
+    camera.rotation.set(0, 0, 0); // Looking toward the exhibits
+    camera.lookAt(new THREE.Vector3(0, 1.8, -10)); // Look toward the exhibits
     
     console.log("Camera initialized at:", camera.position);
   }, [camera]);

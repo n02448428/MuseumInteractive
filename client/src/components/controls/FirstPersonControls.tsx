@@ -7,7 +7,6 @@ import { Controls } from '../../App';
 // Movement settings
 const MOVE_SPEED = 0.15; // Increased for faster movement
 const ROTATION_SPEED = 0.01; // Further reduced for more controlled turning
-const LOOK_SPEED = 2.0;
 
 // Define keyboard state interface
 interface KeyState {
@@ -25,6 +24,9 @@ export default function FirstPersonControls() {
   
   // Track if the right mouse button is being held
   const [rightMouseHeld, setRightMouseHeld] = useState(false);
+  // Track temporary rotation while right mouse is pressed
+  const tempRotationX = useRef(0);
+  const tempRotationY = useRef(0);
   
   // Custom keyboard state implementation
   const [keyState, setKeyState] = useState<KeyState>({
@@ -54,40 +56,47 @@ export default function FirstPersonControls() {
     camera: { position, moving }
   } = usePortfolio();
   
-  // Enhanced mouse movement handling with temporary rotation and free-look
+  // Prevent context menu on right-click
   useEffect(() => {
-    // Store temporary look rotation while right mouse is pressed
-    const tempRotation = { x: 0, y: 0 };
-    // Track right mouse button state explicitly
-    let rightMouseDown = false;
+    const handleContextMenu = (event: MouseEvent) => {
+      event.preventDefault();
+    };
     
-    console.log("Setting up right mouse button handlers");
+    window.addEventListener('contextmenu', handleContextMenu);
     
+    return () => {
+      window.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, []);
+  
+  // Handle right mouse button for looking around
+  useEffect(() => {
     const handleMouseDown = (event: MouseEvent) => {
       if (event.button === 2) { // Right mouse button
-        rightMouseDown = true;
         console.log("Right mouse button DOWN");
-        
-        // Store current rotation as starting point
-        tempRotation.x = 0;
-        tempRotation.y = rotationY.current;
-        
-        // Set the right mouse state for movement behavior
         setRightMouseHeld(true);
+        // Reset temporary rotations
+        tempRotationX.current = 0;
+        tempRotationY.current = 0;
       }
     };
     
     const handleMouseUp = (event: MouseEvent) => {
       if (event.button === 2) { // Right mouse button released
-        rightMouseDown = false;
         console.log("Right mouse button UP");
-        
-        // Set the right mouse state for movement behavior
         setRightMouseHeld(false);
         
-        // Return to normal plane view (only keep y rotation)
+        // Update the main rotation with our temporary rotation
+        rotationY.current += tempRotationY.current;
+        
+        // Reset temp rotations
+        tempRotationX.current = 0;
+        tempRotationY.current = 0;
+        
+        // Return to normal plane view (remove vertical rotation)
         const forward = new THREE.Vector3(0, 0, -1);
         forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+        forward.normalize();
         
         const currentPos = camera.position.clone();
         const targetPos = currentPos.clone().add(forward);
@@ -98,61 +107,47 @@ export default function FirstPersonControls() {
     };
     
     const handleMouseMove = (event: MouseEvent) => {
-      // Only track rotation if right mouse button is pressed
-      if (isInteracting || !rightMouseDown) return;
+      if (!rightMouseHeld || isInteracting) return;
       
-      console.log("Mouse move with right button:", event.movementX, event.movementY);
-      
-      // Update rotation based on mouse movement
-      tempRotation.x -= event.movementY * ROTATION_SPEED * 0.5; // Vertical look (limited)
-      tempRotation.y -= event.movementX * ROTATION_SPEED;       // Horizontal look (360 degrees)
+      // Update the temporary rotation based on mouse movement
+      tempRotationX.current -= event.movementY * ROTATION_SPEED * 0.7; // Vertical look (limited)
+      tempRotationY.current -= event.movementX * ROTATION_SPEED * 1.5;  // Horizontal look
       
       // Limit vertical looking to prevent flipping
-      tempRotation.x = Math.max(-Math.PI/3, Math.min(Math.PI/3, tempRotation.x));
+      tempRotationX.current = Math.max(-Math.PI/3, Math.min(Math.PI/3, tempRotationX.current));
       
-      // Apply temporary rotation while in free-look mode
+      // Apply the rotation to the camera
       const forward = new THREE.Vector3(0, 0, -1);
-      const up = new THREE.Vector3(0, 1, 0);
       
-      // Apply rotations in correct order
-      forward.applyAxisAngle(up, rotationY.current + tempRotation.y);
+      // First apply the total horizontal rotation (base + temp)
+      forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current + tempRotationY.current);
       
-      // Create right vector for vertical rotation
+      // Then apply the vertical rotation
       const right = new THREE.Vector3(1, 0, 0);
-      right.applyAxisAngle(up, rotationY.current + tempRotation.y);
+      right.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current + tempRotationY.current);
+      forward.applyAxisAngle(right, tempRotationX.current);
       
-      // Apply vertical rotation
-      forward.applyAxisAngle(right, tempRotation.x);
       forward.normalize();
       
-      // Calculate new look-at point
+      // Update the camera look direction
       const currentPos = camera.position.clone();
       const targetPos = currentPos.clone().add(forward);
       
-      // Update camera directly
       camera.lookAt(targetPos);
       updateCameraLookAt([targetPos.x, targetPos.y, targetPos.z]);
     };
     
-    // Prevent context menu on right-click
-    const handleContextMenu = (event: MouseEvent) => {
-      event.preventDefault();
-    };
+    // Add event listeners
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('mousemove', handleMouseMove);
     
-    // Add event listeners to window to capture all mouse events
-    window.addEventListener('mousedown', handleMouseDown, false);
-    window.addEventListener('mouseup', handleMouseUp, false);
-    window.addEventListener('mousemove', handleMouseMove, false);
-    window.addEventListener('contextmenu', handleContextMenu, false);
-    
-    // Remove event listeners on cleanup
     return () => {
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('contextmenu', handleContextMenu);
     };
-  }, [isInteracting, camera, updateCameraLookAt, setRightMouseHeld]);
+  }, [camera, rightMouseHeld, isInteracting, updateCameraLookAt]);
   
   // Handle autonomous path following - simplified for direct camera control
   const followPath = () => {
@@ -419,8 +414,11 @@ export default function FirstPersonControls() {
     updateCameraPosition([camera.position.x, camera.position.y, camera.position.z]);
     
     // Always update the camera look direction to ensure it's consistent
-    const lookTarget = camera.position.clone().add(forwardVector);
-    camera.lookAt(lookTarget);
+    // But only if we're not in right-mouse-button mode which handles its own look updates
+    if (!rightMouseHeld) {
+      const lookTarget = camera.position.clone().add(forwardVector);
+      camera.lookAt(lookTarget);
+    }
   });
 
   return null;
