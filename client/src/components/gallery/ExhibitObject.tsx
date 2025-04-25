@@ -75,15 +75,40 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
     }
   }, []);
   
-  // Highlight effect when hovered
+  // Enhanced highlight effect when hovered
   useEffect(() => {
     if (objectRef.current) {
+      // Scale up slightly when hovered
       gsap.to(objectRef.current.scale, {
-        x: hovered ? 1.1 : 1,
-        y: hovered ? 1.1 : 1,
-        z: hovered ? 1.1 : 1,
+        x: hovered ? 1.15 : 1,
+        y: hovered ? 1.15 : 1,
+        z: hovered ? 1.15 : 1,
         duration: 0.3,
         ease: "power2.out"
+      });
+      
+      // Add a subtle floating animation when hovered
+      if (hovered) {
+        gsap.to(objectRef.current.position, {
+          y: objectRef.current.position.y + 0.2,
+          duration: 0.5,
+          ease: "power2.out",
+          yoyo: true,
+          repeat: 1
+        });
+      }
+    }
+    
+    // Always maintain a subtle glow/pulse to indicate interactivity
+    if (objectRef.current) {
+      gsap.to(objectRef.current.scale, {
+        x: objectRef.current.scale.x * 1.05,
+        y: objectRef.current.scale.y * 1.05,
+        z: objectRef.current.scale.z * 1.05,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
       });
     }
     
@@ -160,15 +185,15 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
     }, path.length * 1000); // Roughly estimate travel time
   };
   
-  // Check distance to camera to show label
+  // Check distance to camera to show label and hover effect
   useFrame(() => {
     if (objectRef.current && camera) {
       const distance = new THREE.Vector3()
         .copy(camera.position)
         .distanceTo(new THREE.Vector3(...exhibit.position));
       
-      // Only show label when close enough
-      setHovered(distance < 8);
+      // Show label and hover effects when close enough - increased distance for better visibility
+      setHovered(distance < 15);
     }
   });
   
@@ -378,19 +403,24 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
         {exhibit.title}
       </Text>
       
-      {/* Interaction prompt */}
+      {/* Enhanced hover description */}
       {hovered && (
         <Html position={[0, -1, 0]} center transform distanceFactor={10}>
           <div style={{
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
             color: 'white',
-            padding: '0.5rem 1rem',
-            borderRadius: '4px',
+            padding: '0.8rem 1.2rem',
+            borderRadius: '8px',
             fontSize: '14px',
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none'
+            maxWidth: '300px',
+            textAlign: 'center',
+            boxShadow: '0 0 10px rgba(0,0,0,0.5)',
+            pointerEvents: 'none',
+            transition: 'all 0.3s ease'
           }}>
-            <p>Click to explore {exhibit.title}</p>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold' }}>{exhibit.title}</h3>
+            <p style={{ margin: '0 0 8px 0', opacity: 0.9 }}>{exhibit.description}</p>
+            <p style={{ margin: '0', color: '#4ade80', fontWeight: 'bold', fontSize: '13px' }}>Click to explore</p>
           </div>
         </Html>
       )}

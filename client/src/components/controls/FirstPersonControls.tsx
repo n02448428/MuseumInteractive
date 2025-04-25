@@ -6,7 +6,7 @@ import { Controls } from '../../App';
 
 // Movement settings
 const MOVE_SPEED = 0.15; // Increased for faster movement
-const ROTATION_SPEED = 0.02; // Reduced for more controlled turning
+const ROTATION_SPEED = 0.01; // Further reduced for more controlled turning
 const LOOK_SPEED = 2.0;
 
 // Define keyboard state interface
