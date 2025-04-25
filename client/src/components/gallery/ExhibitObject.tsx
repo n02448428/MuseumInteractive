@@ -88,7 +88,7 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
       });
       
       // Add a subtle floating animation when hovered, with maximum height limit
-      if (hovered) {
+      if (hovered && objectRef.current) {
         // Get initial position to ensure we don't go too far from original
         const initialY = exhibit.position[1];
         const currentY = objectRef.current.position.y;
@@ -104,11 +104,13 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
           repeat: 1,
           onComplete: () => {
             // Always ensure we return to a stable position
-            gsap.to(objectRef.current.position, {
-              y: initialY,
-              duration: 0.3,
-              ease: "power2.out"
-            });
+            if (objectRef.current) {
+              gsap.to(objectRef.current.position, {
+                y: initialY,
+                duration: 0.3,
+                ease: "power2.out"
+              });
+            }
           }
         });
       }

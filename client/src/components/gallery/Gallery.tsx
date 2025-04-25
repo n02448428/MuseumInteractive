@@ -6,6 +6,7 @@ import FirstPersonControls from '../controls/FirstPersonControls';
 import MobileControls from '../controls/MobileControls';
 import ExhibitObject from './ExhibitObject';
 import ProjectDetails from './ProjectDetails';
+import GalleryText from '../ui/GalleryText';
 import { usePortfolio } from '../../lib/stores/usePortfolio';
 import { useIsMobile } from '../../hooks/use-is-mobile';
 
@@ -128,6 +129,9 @@ export default function Gallery() {
         {exhibits.map((exhibit) => (
           <ExhibitObject key={exhibit.id} exhibit={exhibit} />
         ))}
+        
+        {/* Gallery title texts */}
+        <GalleryText />
       </Suspense>
       
       {/* Controls */}
