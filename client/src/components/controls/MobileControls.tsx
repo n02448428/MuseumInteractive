@@ -21,10 +21,7 @@ export default function MobileControls() {
     path
   } = usePortfolio();
 
-  // Exit early if not mobile
-  if (!isMobile) return null;
-
-  // All state hooks
+  // All state hooks - must be defined unconditionally
   const [showControls, setShowControls] = useState(true);
   const [joystickActive, setJoystickActive] = useState(false);
   const [joystickPos, setJoystickPos] = useState<TouchPosition>({ x: 0, y: 0 });
@@ -35,7 +32,7 @@ export default function MobileControls() {
 
   // Movement effect
   useEffect(() => {
-    if (!joystickActive || isInteracting || path.active) return;
+    if (!joystickActive || isInteracting || path.active || !isMobile) return;
 
     const interval = setInterval(() => {
       const forward = new THREE.Vector3(
@@ -63,11 +60,11 @@ export default function MobileControls() {
     }, 16);
 
     return () => clearInterval(interval);
-  }, [joystickActive, moveVector, position, lookAt, updateCameraPosition, isInteracting, path.active, setCameraMoving]);
+  }, [joystickActive, moveVector, position, lookAt, updateCameraPosition, isInteracting, path.active, setCameraMoving, isMobile]);
 
   // Look effect
   useEffect(() => {
-    if (!lookActive || isInteracting) return;
+    if (!lookActive || isInteracting || !isMobile) return;
 
     const currentDir = new THREE.Vector3(
       lookAt[0] - position[0],
@@ -80,7 +77,7 @@ export default function MobileControls() {
     const newLookAt = new THREE.Vector3(...position).add(currentDir);
     updateCameraLookAt([newLookAt.x, lookAt[1], newLookAt.z]);
     setLookDelta({ x: 0, y: 0 });
-  }, [lookActive, lookDelta, position, lookAt, updateCameraLookAt, isInteracting]);
+  }, [lookActive, lookDelta, position, lookAt, updateCameraLookAt, isInteracting, isMobile]);
 
   const handleJoystickStart = (e: React.TouchEvent) => {
     e.preventDefault();
@@ -145,6 +142,9 @@ export default function MobileControls() {
   const toggleControls = () => {
     setShowControls(!showControls);
   };
+
+  // Early return pattern after all hooks are defined
+  if (!isMobile) return null;
 
   return (
     <>
