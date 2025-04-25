@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { usePortfolio } from '../../lib/stores/usePortfolio';
 import { Controls } from '../../App';
 
-const MOVE_SPEED = 5;
+const MOVE_SPEED = 0.15;
 const LOOK_SPEED = 2;
 const COLLISION_DISTANCE = 0.5;
 
@@ -86,11 +86,11 @@ export default function FirstPersonControls() {
     };
   }, [isInteracting, position, updateCameraLookAt]);
   
-  // Handle autonomous path following
-  const followPath = (delta: number) => {
+  // Handle autonomous path following - simplified for direct camera control
+  const followPath = () => {
     if (!path.active || path.points.length === 0) return false;
     
-    const currentPos = new THREE.Vector3(position[0], position[1], position[2]);
+    const currentPos = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z);
     const targetPoint = path.points[path.currentPoint];
     const targetPos = new THREE.Vector3(targetPoint[0], targetPoint[1], targetPoint[2]);
     const distance = currentPos.distanceTo(targetPos);
@@ -113,17 +113,20 @@ export default function FirstPersonControls() {
       .subVectors(targetPos, currentPos)
       .normalize();
     
-    // Move towards target
-    const stepSize = MOVE_SPEED * delta;
-    const movement = direction.multiplyScalar(Math.min(stepSize, distance));
+    // Move directly towards target at a constant speed
+    const movement = direction.multiplyScalar(MOVE_SPEED);
     
-    // Update camera position
-    const newPos = new THREE.Vector3(position[0], position[1], position[2]).add(movement);
-    updateCameraPosition([newPos.x, newPos.y, newPos.z]);
+    // Move camera directly
+    camera.position.x += movement.x;
+    camera.position.y += movement.y;
+    camera.position.z += movement.z;
     
-    // Update camera look direction to face movement direction
-    const lookAt: [number, number, number] = [targetPos.x, targetPos.y, targetPos.z];
-    updateCameraLookAt(lookAt);
+    // Make camera look at target
+    camera.lookAt(targetPos);
+    
+    // Keep store in sync with camera
+    updateCameraPosition([camera.position.x, camera.position.y, camera.position.z]);
+    updateCameraLookAt([targetPos.x, targetPos.y, targetPos.z]);
     
     return true;
   };
@@ -304,69 +307,90 @@ export default function FirstPersonControls() {
     };
   }, [isInteracting, position, rotationY, updateCameraPosition]);
   
-  // Main update loop
-  useFrame((_, delta) => {
+  // Main update loop - much more direct implementation
+  useFrame(() => {
     // If we're following a path, prioritize that movement
-    if (followPath(delta)) return;
+    if (path.active) {
+      followPath();
+      return;
+    }
     
     // Otherwise, handle manual keyboard controls
     if (isInteracting) return; // Disable movement during interactions
     
-    // Use our custom keyState instead of the drei keyboard controls
-    
+    // Use our custom keyState for simplified direct movement
     const moveForward = keyState.forward;
     const moveBackward = keyState.backward;
     const moveLeft = keyState.left;
     const moveRight = keyState.right;
     
     if (!(moveForward || moveBackward || moveLeft || moveRight)) {
-      setCameraMoving(false);
       return;
     }
     
-    setCameraMoving(true);
-    
-    // Calculate movement direction
-    const moveZ = Number(moveForward) - Number(moveBackward);
-    const moveX = Number(moveRight) - Number(moveLeft);
-    
-    // Get forward and right vectors from camera
-    const forward3 = new THREE.Vector3(0, 0, -1);
-    forward3.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-    
-    const right3 = new THREE.Vector3(1, 0, 0);
-    right3.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
-    
-    // Calculate movement vector
-    movementVector.current.set(0, 0, 0);
-    
-    if (moveZ) {
-      movementVector.current.addScaledVector(forward3, moveZ);
+    // Direct camera movement
+    if (moveForward) {
+      const forward = new THREE.Vector3(0, 0, -1);
+      forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+      forward.normalize().multiplyScalar(MOVE_SPEED);
+      
+      // Move camera directly
+      camera.position.x += forward.x;
+      camera.position.z += forward.z;
+      
+      // Keep store in sync with camera
+      updateCameraPosition([camera.position.x, camera.position.y, camera.position.z]);
     }
     
-    if (moveX) {
-      movementVector.current.addScaledVector(right3, moveX);
+    if (moveBackward) {
+      const backward = new THREE.Vector3(0, 0, 1);
+      backward.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+      backward.normalize().multiplyScalar(MOVE_SPEED);
+      
+      // Move camera directly
+      camera.position.x += backward.x;
+      camera.position.z += backward.z;
+      
+      // Keep store in sync with camera
+      updateCameraPosition([camera.position.x, camera.position.y, camera.position.z]);
     }
     
-    // Normalize and apply speed
-    if (movementVector.current.length() > 0) {
-      movementVector.current.normalize().multiplyScalar(MOVE_SPEED * delta);
+    if (moveLeft) {
+      const left = new THREE.Vector3(-1, 0, 0);
+      left.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+      left.normalize().multiplyScalar(MOVE_SPEED);
       
-      // Apply movement
-      const currentPos = new THREE.Vector3(position[0], position[1], position[2]);
-      currentPos.add(movementVector.current);
+      // Move camera directly
+      camera.position.x += left.x;
+      camera.position.z += left.z;
       
-      // Basic collision detection with walls and bounds
-      const minX = -25, maxX = 25;
-      const minZ = -25, maxZ = 25;
-      
-      // Clamp position within bounds
-      currentPos.x = THREE.MathUtils.clamp(currentPos.x, minX, maxX);
-      currentPos.z = THREE.MathUtils.clamp(currentPos.z, minZ, maxZ);
-      
-      // Update position in store
-      updateCameraPosition([currentPos.x, position[1], currentPos.z]);
+      // Keep store in sync with camera
+      updateCameraPosition([camera.position.x, camera.position.y, camera.position.z]);
     }
+    
+    if (moveRight) {
+      const right = new THREE.Vector3(1, 0, 0);
+      right.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotationY.current);
+      right.normalize().multiplyScalar(MOVE_SPEED);
+      
+      // Move camera directly
+      camera.position.x += right.x;
+      camera.position.z += right.z;
+      
+      // Keep store in sync with camera
+      updateCameraPosition([camera.position.x, camera.position.y, camera.position.z]);
+    }
+    
+    // Basic collision detection with gallery bounds
+    const minX = -25, maxX = 25;
+    const minZ = -25, maxZ = 25;
+    
+    // Clamp position within bounds
+    camera.position.x = THREE.MathUtils.clamp(camera.position.x, minX, maxX);
+    camera.position.z = THREE.MathUtils.clamp(camera.position.z, minZ, maxZ);
+    
+    // Ensure store is in sync with camera's final position after clamping
+    updateCameraPosition([camera.position.x, camera.position.y, camera.position.z]);
   });
 
   return null;
