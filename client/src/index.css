@@ -29,6 +29,14 @@ canvas {
   touch-action: none;
 }
 
+/* Portfolio container */
+.portfolio-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 /* Music Player Styles */
 .music-player-container {
   position: fixed;
@@ -279,4 +287,84 @@ canvas {
   .project-details-panel {
     max-width: 100%;
   }
+}
+
+/* Mobile Controls Styles */
+.mobile-controls {
+  position: fixed;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.mobile-controls-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  z-index: 1001;
+  pointer-events: auto;
+}
+
+.mobile-joystick-area {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  width: 120px;
+  height: 120px;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.mobile-joystick-base {
+  width: 100px;
+  height: 100px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-joystick-handle {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  transition: transform 0.1s ease-out;
+}
+
+.mobile-joystick-handle.active {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.mobile-look-area {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.mobile-look-icon {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
 }
