@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import * as THREE from 'three';
 import { usePortfolio } from '../../lib/stores/usePortfolio';
 import { ProjectCategory } from '../../lib/types';
 
@@ -34,7 +35,11 @@ export default function ProjectDetails() {
     showProjectDetails,
     setShowProjectDetails,
     selectProject,
+    selectExhibit,
     setInteracting, // To disable camera movement
+    setNavigationPath,
+    setTargetPosition,
+    camera, // Use camera from usePortfolio instead
   } = usePortfolio();
   
   // Get projects for the current category
@@ -99,6 +104,27 @@ export default function ProjectDetails() {
   // Close the details panel
   const handleClose = () => {
     setShowProjectDetails(false);
+    
+    // If user hasn't moved since viewing the exhibit, return to starting position
+    const startPosition = new THREE.Vector3(0, 1.8, 0);
+    const currentPosition = new THREE.Vector3().copy(camera.position);
+    
+    // Get distance from the starting position
+    const distanceFromExhibit = currentPosition.distanceTo(startPosition);
+    
+    // If we're not at starting position and we've viewed the exhibit without moving much
+    if (distanceFromExhibit > 5) {
+      // Generate a path back to the start
+      const returnPath = [
+        [currentPosition.x, currentPosition.y, currentPosition.z] as [number, number, number],
+        [0, 1.8, 0] as [number, number, number]
+      ];
+      
+      // Set the navigation path back to start
+      setNavigationPath(returnPath);
+      setTargetPosition(null);
+      selectExhibit(null);
+    }
   };
   
   // If no exhibit is selected or details shouldn't be shown, don't render anything

@@ -28,7 +28,7 @@ export default function GalleryText() {
     if (!camera) return;
     
     // Get camera position as THREE.Vector3
-    const currentPosition = new THREE.Vector3();
+    const currentPosition = new THREE.Vector3().copy(camera.position);
     
     // First frame, initialize last position
     if (!lastPosition) {
