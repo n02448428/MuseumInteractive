@@ -198,15 +198,15 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
     
     // For music exhibit, open the music player (the MusicPlayer component will handle starting playback)
     if (exhibit.category === ProjectCategory.MUSIC) {
-      const { backgroundMusic } = useAudio.getState();
       // Start playing the music when we reach the exhibit
-      if (backgroundMusic) {
-        setTimeout(() => {
-          backgroundMusic.play().catch(error => {
+      setTimeout(() => {
+        const { backgroundMusic } = useAudio.getState();
+        if (backgroundMusic) {
+          backgroundMusic.play().catch((error: Error) => {
             console.log("Autoplay prevented:", error);
           });
-        }, path.length * 800); // Slightly before we show details
-      }
+        }
+      }, path.length * 800); // Slightly before we show details
     }
     
     // Show project details when we arrive

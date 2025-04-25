@@ -450,3 +450,10 @@ canvas {
   margin: 0;
   line-height: 1.4;
 }
+
+.exhibit-description .interact-hint {
+  margin-top: 8px;
+  color: #4ade80;
+  font-weight: bold;
+  font-size: 14px;
+}
