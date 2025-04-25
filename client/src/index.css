@@ -170,14 +170,24 @@ canvas {
   flex-direction: column;
   margin: 20px;
   overflow-y: auto;
+  position: relative;
 }
 
+/* Legacy header - kept for backward compatibility */
 .project-details-header {
   padding: 1rem 1.5rem;
   color: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+/* New minimal header */
+.project-details-header-minimal {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 10;
 }
 
 .project-details-header h2 {
@@ -194,7 +204,7 @@ canvas {
 }
 
 .close-button {
-  background: none;
+  background: rgba(0, 0, 0, 0.5);
   border: none;
   color: white;
   font-size: 1.5rem;
@@ -209,7 +219,7 @@ canvas {
 }
 
 .close-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .project-details-content {
@@ -217,73 +227,31 @@ canvas {
 }
 
 .project-details-content h3 {
-  margin: 0 0 0.5rem;
+  margin: 0 0 1rem;
   font-size: 1.5rem;
   font-weight: 600;
   color: #333;
+  text-align: center;
 }
 
-.project-date {
-  color: #666;
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-}
-
-.project-description {
-  margin-bottom: 1.5rem;
+.project-text-content {
   line-height: 1.6;
   color: #333;
+  margin-top: 0.5rem;
+  padding: 1rem;
+  font-size: 1.1rem;
 }
 
-.project-additional-details {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #eee;
-  font-size: 0.9rem;
-}
-
-.project-link {
+.project-text-content a {
+  display: block;
   margin-top: 1.5rem;
-}
-
-.project-link a {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  color: white;
+  color: #0066cc;
   text-decoration: none;
-  border-radius: 4px;
-  font-weight: 500;
-  transition: background-color 0.2s;
+  word-break: break-all;
 }
 
-.project-link a:hover {
-  opacity: 0.9;
-}
-
-.project-navigation {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #eee;
-}
-
-.project-navigation button {
-  background: none;
-  border: none;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 0.5rem 0.75rem;
-  border-radius: 4px;
-}
-
-.project-navigation button:hover {
-  background: #f5f5f5;
-}
-
-.project-indicator {
-  font-size: 0.875rem;
-  color: #666;
+.project-text-content a:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 640px) {

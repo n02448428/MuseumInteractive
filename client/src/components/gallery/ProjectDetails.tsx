@@ -148,60 +148,41 @@ export default function ProjectDetails() {
           transition={{ duration: 0.3 }}
           key="project-panel"
         >
-          {/* Header with category and navigation */}
-          <div 
-            className="project-details-header"
-            style={{ backgroundColor: categoryColor }}
-          >
-            <h2>
-              <span className="category-icon">{categoryIcon}</span>
-              {currentExhibit.title}
-            </h2>
+          {/* Minimal header with just close button */}
+          <div className="project-details-header-minimal">
             <button className="close-button" onClick={handleClose}>×</button>
           </div>
           
-          {/* Project content */}
+          {/* Simplified project content - minimal UI */}
           <div className="project-details-content">
             {selectedProject ? (
               <>
+                {/* Show just the title and project details (or description if no details) */}
                 <h3>{selectedProject.title}</h3>
-                <p className="project-date">{selectedProject.date}</p>
-                <p className="project-description">{selectedProject.description}</p>
                 
-                {selectedProject.details && (
-                  <div className="project-additional-details">
-                    {selectedProject.details}
-                  </div>
-                )}
-                
-                {selectedProject.projectUrl && (
-                  <div className="project-link">
+                <div className="project-text-content">
+                  {selectedProject.details ? (
+                    <p>{selectedProject.details}</p>
+                  ) : (
+                    <p>{selectedProject.description}</p>
+                  )}
+                  
+                  {/* Always show link for project if available */}
+                  {selectedProject.projectUrl && (
                     <a 
                       href={selectedProject.projectUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      style={{ backgroundColor: categoryColor }}
                     >
-                      View Project
+                      {selectedProject.projectUrl}
                     </a>
-                  </div>
-                )}
+                  )}
+                </div>
               </>
             ) : (
-              <p>No projects available in this category.</p>
+              <p>No content available.</p>
             )}
           </div>
-          
-          {/* Navigation between projects */}
-          {projects.length > 1 && (
-            <div className="project-navigation">
-              <button onClick={goToPrevProject} style={{ color: categoryColor }}>&larr; Previous</button>
-              <div className="project-indicator">
-                {currentIndex + 1} of {projects.length}
-              </div>
-              <button onClick={goToNextProject} style={{ color: categoryColor }}>Next &rarr;</button>
-            </div>
-          )}
         </motion.div>
       </AnimatePresence>
     </div>,
