@@ -1,0 +1,25 @@
+{
+  "projects": [
+    {
+      "id": "poetry-1",
+      "title": "Reflections",
+      "description": "A collection of poems reflecting on nature and time",
+      "date": "2023-08-12",
+      "details": "In these quiet hours, I find myself drawn to the subtle rhythms of nature – the way light plays across water, how leaves whisper secrets to the wind. These poems emerged from moments of stillness, when the world seemed to pause and reveal itself anew."
+    },
+    {
+      "id": "poetry-2",
+      "title": "Urban Verses",
+      "description": "Poetry inspired by city life and its contrasts",
+      "date": "2023-10-03",
+      "details": "The city speaks in a language of contrasts – the harsh and the beautiful, isolation amidst crowds, silence within noise. These verses attempt to capture those paradoxes, finding poetry in concrete and connection in the anonymous flow of urban life."
+    },
+    {
+      "id": "poetry-3",
+      "title": "Digital Whispers",
+      "description": "Poems exploring technology and human connection",
+      "date": "2023-11-22",
+      "details": "How do we remain human in a digital age? These poems navigate the landscape of technology, seeking meaning in the spaces between screens, finding echoes of ancient human yearnings in our modern connections."
+    }
+  ]
+}

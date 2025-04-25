@@ -23,54 +23,21 @@ export default function GalleryText() {
   const startPosition = new THREE.Vector3(0, 1.8, 0);
   const movementThreshold = 0.05; // How much movement is considered "moving"
   
-  // Update text visibility based on movement and interaction state
+  // Update text visibility - always visible
   useFrame(() => {
     if (!camera) return;
     
-    // Get camera position as THREE.Vector3
-    const currentPosition = new THREE.Vector3().copy(camera.position);
+    // Always keep text visible regardless of camera position or movement
+    setShouldShow(true);
     
-    // First frame, initialize last position
-    if (!lastPosition) {
-      setLastPosition(currentPosition.clone());
-      return;
-    }
-    
-    // Calculate distance from starting position
-    const distanceFromStart = currentPosition.distanceTo(startPosition);
-    const isAtStartPoint = distanceFromStart < 0.5;
-    
-    // Check if camera is moving
-    const movement = currentPosition.distanceTo(lastPosition);
-    const isCurrentlyMoving = movement > movementThreshold;
-    
-    // Update last position
-    setLastPosition(currentPosition.clone());
-    
-    // If moving, clear any existing timer and start a new one
-    if (isCurrentlyMoving) {
-      setIsMoving(true);
-      if (movementTimer) clearTimeout(movementTimer);
-      
-      // Set timer to check if movement has stopped
-      const timer = setTimeout(() => {
-        setIsMoving(false);
-      }, 1000); // Wait 1 second of no movement to consider player "stationary"
-      
-      setMovementTimer(timer as unknown as NodeJS.Timeout);
-    }
-    
-    // Show text when at start point or not moving and not interacting
-    const shouldBeVisible = (isAtStartPoint || !isMoving) && !isInteracting && !showProjectDetails;
-    
-    // Fade in/out effect
-    if (shouldBeVisible && fadeOpacity < 1) {
+    // Only hide when interacting with exhibits
+    if (isInteracting || showProjectDetails) {
+      if (fadeOpacity > 0) {
+        setFadeOpacity(Math.max(fadeOpacity - 0.05, 0));
+      }
+    } else if (fadeOpacity < 1) {
       setFadeOpacity(Math.min(fadeOpacity + 0.05, 1));
-    } else if (!shouldBeVisible && fadeOpacity > 0) {
-      setFadeOpacity(Math.max(fadeOpacity - 0.05, 0));
     }
-    
-    setShouldShow(shouldBeVisible);
   });
   
   // Clean up timer on unmount

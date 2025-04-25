@@ -7,6 +7,7 @@ import MobileControls from '../controls/MobileControls';
 import ExhibitObject from './ExhibitObject';
 import ProjectDetails from './ProjectDetails';
 import GalleryText from '../ui/GalleryText';
+import WallCredit from './WallCredit';
 import { usePortfolio } from '../../lib/stores/usePortfolio';
 import { useIsMobile } from '../../hooks/use-is-mobile';
 
@@ -132,6 +133,9 @@ export default function Gallery() {
         
         {/* Gallery title texts */}
         <GalleryText />
+        
+        {/* Wall credit with link */}
+        <WallCredit />
       </Suspense>
       
       {/* Controls */}
