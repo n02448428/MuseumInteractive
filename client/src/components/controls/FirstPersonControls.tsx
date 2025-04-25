@@ -33,7 +33,9 @@ export default function FirstPersonControls() {
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
       if (isInteracting) return; // Disable camera rotation during interactions
-      if (document.pointerLockElement) {
+      
+      // Only update camera direction if right mouse button is pressed
+      if (event.buttons === 2) {
         rotationY.current -= event.movementX * 0.002 * LOOK_SPEED;
         
         // Update camera direction based on mouse movement
@@ -49,20 +51,19 @@ export default function FirstPersonControls() {
       }
     };
     
-    const handleMouseDown = () => {
-      if (!document.pointerLockElement) {
-        document.body.requestPointerLock();
-      }
+    // Prevent context menu on right-click
+    const handleContextMenu = (event: MouseEvent) => {
+      event.preventDefault();
     };
     
     // Add event listeners
     document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('contextmenu', handleContextMenu);
     
     // Remove event listeners on cleanup
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('contextmenu', handleContextMenu);
     };
   }, [isInteracting, position, updateCameraLookAt]);
   
@@ -70,8 +71,9 @@ export default function FirstPersonControls() {
   const followPath = (delta: number) => {
     if (!path.active || path.points.length === 0) return false;
     
-    const currentPos = new THREE.Vector3(...position);
-    const targetPos = new THREE.Vector3(...path.points[path.currentPoint]);
+    const currentPos = new THREE.Vector3(position[0], position[1], position[2]);
+    const targetPoint = path.points[path.currentPoint];
+    const targetPos = new THREE.Vector3(targetPoint[0], targetPoint[1], targetPoint[2]);
     const distance = currentPos.distanceTo(targetPos);
     
     if (distance < 0.2) {
@@ -97,16 +99,64 @@ export default function FirstPersonControls() {
     const movement = direction.multiplyScalar(Math.min(stepSize, distance));
     
     // Update camera position
-    const newPos = new THREE.Vector3(...position).add(movement);
+    const newPos = new THREE.Vector3(position[0], position[1], position[2]).add(movement);
     updateCameraPosition([newPos.x, newPos.y, newPos.z]);
     
     // Update camera look direction to face movement direction
-    const lookAtPoint = new THREE.Vector3(...targetPos);
-    updateCameraLookAt([lookAtPoint.x, lookAtPoint.y, lookAtPoint.z]);
+    const lookAt: [number, number, number] = [targetPos.x, targetPos.y, targetPos.z];
+    updateCameraLookAt(lookAt);
     
     return true;
   };
 
+  // Log key states for debugging
+  useEffect(() => {
+    const logKeyState = () => {
+      const state = getKeyboardState();
+      console.log("Keyboard state:", state);
+    };
+    
+    // Log initial state and set up interval
+    logKeyState();
+    const interval = setInterval(logKeyState, 2000);
+    
+    // Cleanup
+    return () => clearInterval(interval);
+  }, [getKeyboardState]);
+  
+  // Set up keyboard listeners to supplement default controls
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      console.log("Key pressed:", e.code);
+      
+      // Handle WASD and arrow keys directly
+      switch (e.code) {
+        case 'KeyW':
+        case 'ArrowUp':
+          // Move forward
+          break;
+        case 'KeyS':
+        case 'ArrowDown':
+          // Move backward
+          break;
+        case 'KeyA':
+        case 'ArrowLeft':
+          // Move left
+          break;
+        case 'KeyD':
+        case 'ArrowRight':
+          // Move right
+          break;
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+  
   // Main update loop
   useFrame((_, delta) => {
     // If we're following a path, prioritize that movement
@@ -115,9 +165,15 @@ export default function FirstPersonControls() {
     // Otherwise, handle manual keyboard controls
     if (isInteracting) return; // Disable movement during interactions
     
-    const { forward, backward, left, right } = getKeyboardState();
+    const state = getKeyboardState();
+    console.log("Frame keyboard state:", state);
     
-    if (!(forward || backward || left || right)) {
+    const moveForward = state.forward;
+    const moveBackward = state.backward;
+    const moveLeft = state.left;
+    const moveRight = state.right;
+    
+    if (!(moveForward || moveBackward || moveLeft || moveRight)) {
       setCameraMoving(false);
       return;
     }
@@ -125,8 +181,8 @@ export default function FirstPersonControls() {
     setCameraMoving(true);
     
     // Calculate movement direction
-    const moveZ = Number(forward) - Number(backward);
-    const moveX = Number(right) - Number(left);
+    const moveZ = Number(moveForward) - Number(moveBackward);
+    const moveX = Number(moveRight) - Number(moveLeft);
     
     // Get forward and right vectors from camera
     const forward3 = new THREE.Vector3(0, 0, -1);
@@ -151,7 +207,7 @@ export default function FirstPersonControls() {
       movementVector.current.normalize().multiplyScalar(MOVE_SPEED * delta);
       
       // Apply movement
-      const currentPos = new THREE.Vector3(...position);
+      const currentPos = new THREE.Vector3(position[0], position[1], position[2]);
       currentPos.add(movementVector.current);
       
       // Basic collision detection with walls and bounds

@@ -31,6 +31,9 @@ function App() {
     { name: Controls.interact, keys: ['KeyE', 'Space'] },
     { name: Controls.jump, keys: ['Space'] },
   ];
+  
+  // Log to help debug key presses
+  console.log("Keyboard controls initialized with: ", keyMap);
 
   // Load audio elements
   useEffect(() => {

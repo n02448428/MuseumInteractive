@@ -1,7 +1,7 @@
 import { useEffect, useRef, Suspense } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { Environment, PointerLockControls, useDetectGPU } from '@react-three/drei';
+import { Environment, useDetectGPU } from '@react-three/drei';
 import FirstPersonControls from '../controls/FirstPersonControls';
 import MobileControls from '../controls/MobileControls';
 import ExhibitObject from './ExhibitObject';
@@ -10,7 +10,7 @@ import { usePortfolio } from '../../lib/stores/usePortfolio';
 import { useIsMobile } from '../../hooks/use-is-mobile';
 
 export default function Gallery() {
-  const { isMobile } = useIsMobile();
+  const isMobile = useIsMobile();
   const { setIsMobile } = usePortfolio();
   const { camera } = useThree();
   const floorGroup = useRef<THREE.Group>(null);
@@ -21,6 +21,7 @@ export default function Gallery() {
   // Set mobile state
   useEffect(() => {
     setIsMobile(isMobile);
+    console.log("Device is mobile:", isMobile);
   }, [isMobile, setIsMobile]);
   
   // Initialize camera position
@@ -35,8 +36,8 @@ export default function Gallery() {
   const GALLERY_LENGTH = 50;
   const WALL_HEIGHT = 5;
   
-  // Calculate lighting
-  const lightPositions = [
+  // Calculate lighting with proper type
+  const lightPositions: [number, number, number][] = [
     [-15, WALL_HEIGHT - 1, -15],
     [15, WALL_HEIGHT - 1, -15],
     [-15, WALL_HEIGHT - 1, 15],
@@ -61,7 +62,7 @@ export default function Gallery() {
       {lightPositions.map((pos, i) => (
         <group key={`light-${i}`}>
           <pointLight 
-            position={pos} 
+            position={[pos[0], pos[1], pos[2]]} 
             intensity={qualitySettings.lightIntensity}
             castShadow={qualitySettings.shadows} 
             shadow-mapSize={[1024, 1024]}
