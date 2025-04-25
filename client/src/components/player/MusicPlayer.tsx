@@ -71,60 +71,74 @@ export default function MusicPlayer() {
     setExpanded(!expanded);
   };
   
+  // Only display the music player when music is selected or playing
+  if (!backgroundMusic) {
+    return null;
+  }
+  
   return (
-    <div className="music-player-container">
-      <motion.div 
-        className="music-player"
-        initial={{ x: expanded ? 0 : "calc(100% - 56px)" }}
-        animate={{ x: expanded ? 0 : "calc(100% - 56px)" }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-      >
-        {/* Toggle button */}
-        <button 
-          className="music-player-toggle"
-          onClick={toggleExpanded}
-          aria-label={expanded ? "Collapse music player" : "Expand music player"}
+    <AnimatePresence>
+      {(isPlaying || expanded) && (
+        <motion.div 
+          className="music-player-container"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
         >
-          <Music size={20} />
-        </button>
-        
-        {/* Player controls */}
-        <div className="music-player-controls">
-          <button 
-            className="music-player-button"
-            onClick={togglePlayback}
-            disabled={loading}
-            aria-label={isPlaying ? "Pause music" : "Play music"}
+          <motion.div 
+            className="music-player"
+            initial={{ x: expanded ? 0 : "calc(100% - 56px)" }}
+            animate={{ x: expanded ? 0 : "calc(100% - 56px)" }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
           >
-            {loading ? (
-              <div className="loading-spinner" />
-            ) : isPlaying ? (
-              <Pause size={20} />
-            ) : (
-              <Play size={20} />
-            )}
-          </button>
-          
-          <button
-            className="music-player-button"
-            onClick={handleToggleMute}
-            aria-label={isMuted ? "Unmute" : "Mute"}
-          >
-            {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-          </button>
-          
-          <div className="music-player-info">
-            <div className="music-player-title">
-              Ambient Gallery Music
+            {/* Toggle button */}
+            <button 
+              className="music-player-toggle"
+              onClick={toggleExpanded}
+              aria-label={expanded ? "Collapse music player" : "Expand music player"}
+            >
+              <Music size={20} />
+            </button>
+            
+            {/* Player controls */}
+            <div className="music-player-controls">
+              <button 
+                className="music-player-button"
+                onClick={togglePlayback}
+                disabled={loading}
+                aria-label={isPlaying ? "Pause music" : "Play music"}
+              >
+                {loading ? (
+                  <div className="loading-spinner" />
+                ) : isPlaying ? (
+                  <Pause size={20} />
+                ) : (
+                  <Play size={20} />
+                )}
+              </button>
+              
+              <button
+                className="music-player-button"
+                onClick={handleToggleMute}
+                aria-label={isMuted ? "Unmute" : "Mute"}
+              >
+                {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+              </button>
+              
+              <div className="music-player-info">
+                <div className="music-player-title">
+                  Ambient Gallery Music
+                </div>
+                <div className="music-player-artist">
+                  Background Soundtrack
+                </div>
+              </div>
             </div>
-            <div className="music-player-artist">
-              Background Soundtrack
-            </div>
-          </div>
-        </div>
-      </motion.div>
-      
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 

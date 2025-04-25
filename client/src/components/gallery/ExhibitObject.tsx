@@ -196,6 +196,19 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
       selectProject(projects[0]);
     }
     
+    // For music exhibit, open the music player (the MusicPlayer component will handle starting playback)
+    if (exhibit.category === ProjectCategory.MUSIC) {
+      const { backgroundMusic } = useAudio.getState();
+      // Start playing the music when we reach the exhibit
+      if (backgroundMusic) {
+        setTimeout(() => {
+          backgroundMusic.play().catch(error => {
+            console.log("Autoplay prevented:", error);
+          });
+        }, path.length * 800); // Slightly before we show details
+      }
+    }
+    
     // Show project details when we arrive
     setTimeout(() => {
       setShowProjectDetails(true);
@@ -209,8 +222,13 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
         .copy(camera.position)
         .distanceTo(new THREE.Vector3(...exhibit.position));
       
-      // Only highlight the object when close enough
-      // Do NOT set hovered state here - that's for actual mouse hover only
+      // Select exhibit for showing description when within 5 units
+      if (distance < 5 && !currentExhibit) {
+        selectExhibit(exhibit);
+      } else if (distance >= 5 && currentExhibit && currentExhibit.id === exhibit.id) {
+        // Clear selection when moving away
+        selectExhibit(null);
+      }
       
       // Always make exhibit face the camera for better visibility
       if (objectRef.current) {

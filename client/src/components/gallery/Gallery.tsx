@@ -6,6 +6,7 @@ import FirstPersonControls from '../controls/FirstPersonControls';
 import MobileControls from '../controls/MobileControls';
 import ExhibitObject from './ExhibitObject';
 import ProjectDetails from './ProjectDetails';
+import ExhibitDescription from './ExhibitDescription';
 import GalleryText from '../ui/GalleryText';
 import WallCredit from './WallCredit';
 import ProjectLoader from './ProjectLoader';

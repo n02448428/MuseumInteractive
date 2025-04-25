@@ -6,6 +6,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import Gallery from "./components/gallery/Gallery";
 import MusicPlayer from "./components/player/MusicPlayer";
 import ProjectDetails from "./components/gallery/ProjectDetails";
+import ExhibitDescription from "./components/gallery/ExhibitDescription";
 import { useAudio } from "./lib/stores/useAudio";
 import { queryClient } from "./lib/queryClient";
 
@@ -78,6 +79,7 @@ function App() {
         
         <MusicPlayer />
         <ProjectDetails />
+        <ExhibitDescription />
         <Loader />
         {import.meta.env.DEV && <Stats />}
       </div>
