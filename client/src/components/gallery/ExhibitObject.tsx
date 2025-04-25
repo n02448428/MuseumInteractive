@@ -87,14 +87,29 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
         ease: "power2.out"
       });
       
-      // Add a subtle floating animation when hovered
+      // Add a subtle floating animation when hovered, with maximum height limit
       if (hovered) {
+        // Get initial position to ensure we don't go too far from original
+        const initialY = exhibit.position[1];
+        const currentY = objectRef.current.position.y;
+        // Limit how high the object can bounce (max 0.5 units above original)
+        const maxHeightDelta = 0.25;
+        const targetY = Math.min(currentY + 0.2, initialY + maxHeightDelta);
+        
         gsap.to(objectRef.current.position, {
-          y: objectRef.current.position.y + 0.2,
+          y: targetY,
           duration: 0.5,
           ease: "power2.out",
           yoyo: true,
-          repeat: 1
+          repeat: 1,
+          onComplete: () => {
+            // Always ensure we return to a stable position
+            gsap.to(objectRef.current.position, {
+              y: initialY,
+              duration: 0.3,
+              ease: "power2.out"
+            });
+          }
         });
       }
     }
@@ -251,56 +266,56 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
       case ProjectCategory.POETRY:
         return (
           <group>
-            {/* Parchment */}
-            <mesh rotation={[-Math.PI / 12, 0, 0]} castShadow>
-              <boxGeometry args={[0.8, 0.05, 1.2]} />
-              <meshStandardMaterial color="#f9f4e0" roughness={0.9} />
+            {/* Sketchpad (now used for Poetry) */}
+            <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
+              <boxGeometry args={[1, 0.05, 1.2]} />
+              <meshStandardMaterial color="#fff" />
             </mesh>
             
-            {/* Quill */}
-            <group position={[0.3, 0.1, -0.3]} rotation={[0, Math.PI / 4, 0]}>
+            {/* Pen */}
+            <group position={[0.3, 0.1, -0.3]} rotation={[0, Math.PI / 3, 0]}>
               <mesh castShadow>
-                <cylinderGeometry args={[0.01, 0.01, 0.8, 8]} />
-                <meshStandardMaterial color="#555" />
+                <cylinderGeometry args={[0.03, 0.03, 0.6, 8]} />
+                <meshStandardMaterial color="#000" />
               </mesh>
-              <mesh position={[0, 0.4, 0]} rotation={[0, 0, -Math.PI / 6]} castShadow>
-                <coneGeometry args={[0.05, 0.4, 8]} />
+              <mesh position={[0, 0.3, 0]} castShadow>
+                <coneGeometry args={[0.03, 0.1, 8]} />
                 <meshStandardMaterial color={color} />
               </mesh>
             </group>
+            
+            {/* Paper with text lines */}
+            <mesh position={[0, 0.06, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+              <planeGeometry args={[0.9, 1.1]} />
+              <meshStandardMaterial color="#f5f5f5" />
+            </mesh>
           </group>
         );
         
       case ProjectCategory.ART:
         return (
           <group>
-            {/* Sketchpad */}
-            <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
-              <boxGeometry args={[1, 0.05, 1.2]} />
-              <meshStandardMaterial color="#fff" />
+            {/* Parchment and quill (now used for Art) */}
+            <mesh rotation={[-Math.PI / 12, 0, 0]} castShadow>
+              <boxGeometry args={[0.8, 0.05, 1.2]} />
+              <meshStandardMaterial color="#f9f4e0" roughness={0.9} />
             </mesh>
             
-            {/* Pencil */}
-            <group position={[0.3, 0.1, -0.3]} rotation={[0, Math.PI / 3, 0]}>
-              <mesh castShadow>
-                <cylinderGeometry args={[0.03, 0.03, 0.6, 8]} />
-                <meshStandardMaterial color={color} />
-              </mesh>
-              <mesh position={[0, 0.3, 0]} castShadow>
-                <coneGeometry args={[0.03, 0.1, 8]} />
-                <meshStandardMaterial color="#555" />
-              </mesh>
-            </group>
+            {/* Palette */}
+            <mesh position={[-0.3, 0.1, 0.3]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+              <circleGeometry args={[0.3, 32]} />
+              <meshStandardMaterial color="#8B4513" />
+            </mesh>
             
             {/* Brush */}
-            <group position={[-0.3, 0.1, 0.3]} rotation={[0, -Math.PI / 4, 0]}>
+            <group position={[0.3, 0.1, -0.3]} rotation={[0, Math.PI / 4, 0]}>
               <mesh castShadow>
                 <cylinderGeometry args={[0.02, 0.02, 0.5, 8]} />
                 <meshStandardMaterial color="#8B4513" />
               </mesh>
               <mesh position={[0, 0.3, 0]} castShadow>
                 <sphereGeometry args={[0.04, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
-                <meshStandardMaterial color="#222" />
+                <meshStandardMaterial color={color} />
               </mesh>
             </group>
           </group>

@@ -34,6 +34,7 @@ export default function ProjectDetails() {
     showProjectDetails,
     setShowProjectDetails,
     selectProject,
+    setInteracting, // To disable camera movement
   } = usePortfolio();
   
   // Get projects for the current category
@@ -61,6 +62,18 @@ export default function ProjectDetails() {
       }
     };
   }, []);
+  
+  // Disable camera movement when showing project details
+  useEffect(() => {
+    if (showProjectDetails) {
+      setInteracting(true);
+    }
+    
+    // Enable camera movement when component unmounts or details are hidden
+    return () => {
+      setInteracting(false);
+    };
+  }, [showProjectDetails, setInteracting]);
   
   // Update current index when selected project changes
   useEffect(() => {
