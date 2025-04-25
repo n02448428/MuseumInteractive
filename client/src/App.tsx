@@ -1,11 +1,11 @@
 import { Suspense, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Loader, Stats } from "@react-three/drei";
-import { Analytics } from "@vercel/analytics/react";
 import { KeyboardControls } from "@react-three/drei";
 
 import Gallery from "./components/gallery/Gallery";
 import MusicPlayer from "./components/player/MusicPlayer";
+import ControlsHelp from "./components/ui/ControlsHelp";
 import { useAudio } from "./lib/stores/useAudio";
 
 // Define keyboard controls as an enum
@@ -62,6 +62,8 @@ function App() {
             logarithmicDepthBuffer: true,
             powerPreference: "high-performance"
           }}
+          style={{ outline: 'none' }}
+          tabIndex={0}
         >
           <color attach="background" args={["#f5f5f5"]} />
           <fog attach="fog" args={["#f5f5f5", 10, 50]} />

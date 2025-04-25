@@ -137,74 +137,90 @@ export default function FirstPersonControls() {
     
     // Define keyDown handler
     const handleKeyDown = (e: KeyboardEvent) => {
+      e.preventDefault(); // Prevent default browser behavior
       console.log("Key pressed:", e.code);
       
       // Update key state based on pressed key
       switch (e.code) {
         case 'KeyW':
         case 'ArrowUp':
-          setKeyState(prev => ({ ...prev, forward: true }));
+          setKeyState(state => ({ ...state, forward: true }));
           break;
         case 'KeyS':
         case 'ArrowDown':
-          setKeyState(prev => ({ ...prev, backward: true }));
+          setKeyState(state => ({ ...state, backward: true }));
           break;
         case 'KeyA':
         case 'ArrowLeft':
-          setKeyState(prev => ({ ...prev, left: true }));
+          setKeyState(state => ({ ...state, left: true }));
           break;
         case 'KeyD':
         case 'ArrowRight':
-          setKeyState(prev => ({ ...prev, right: true }));
+          setKeyState(state => ({ ...state, right: true }));
           break;
         case 'KeyE':
-          setKeyState(prev => ({ ...prev, interact: true }));
+          setKeyState(state => ({ ...state, interact: true }));
           break;
         case 'Space':
-          setKeyState(prev => ({ ...prev, jump: true }));
+          setKeyState(state => ({ ...state, jump: true }));
           break;
       }
     };
     
     // Define keyUp handler
     const handleKeyUp = (e: KeyboardEvent) => {
+      e.preventDefault(); // Prevent default browser behavior
       console.log("Key released:", e.code);
       
       // Update key state based on released key
       switch (e.code) {
         case 'KeyW':
         case 'ArrowUp':
-          setKeyState(prev => ({ ...prev, forward: false }));
+          setKeyState(state => ({ ...state, forward: false }));
           break;
         case 'KeyS':
         case 'ArrowDown':
-          setKeyState(prev => ({ ...prev, backward: false }));
+          setKeyState(state => ({ ...state, backward: false }));
           break;
         case 'KeyA':
         case 'ArrowLeft':
-          setKeyState(prev => ({ ...prev, left: false }));
+          setKeyState(state => ({ ...state, left: false }));
           break;
         case 'KeyD':
         case 'ArrowRight':
-          setKeyState(prev => ({ ...prev, right: false }));
+          setKeyState(state => ({ ...state, right: false }));
           break;
         case 'KeyE':
-          setKeyState(prev => ({ ...prev, interact: false }));
+          setKeyState(state => ({ ...state, interact: false }));
           break;
         case 'Space':
-          setKeyState(prev => ({ ...prev, jump: false }));
+          setKeyState(state => ({ ...state, jump: false }));
           break;
       }
     };
     
-    // Add event listeners
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    // Focus on the canvas to ensure it receives keyboard events
+    const focusCanvas = () => {
+      const canvas = document.querySelector('canvas');
+      if (canvas) {
+        canvas.focus();
+        console.log("Canvas focused for keyboard input");
+      }
+    };
+    
+    // Add event listeners to the document
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    document.addEventListener('click', focusCanvas);
+    
+    // Focus the canvas initially
+    setTimeout(focusCanvas, 100);
     
     // Remove event listeners on cleanup
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+      document.removeEventListener('click', focusCanvas);
       clearInterval(interval);
     };
   }, []);
