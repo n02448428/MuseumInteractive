@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>3D Portfolio Gallery</title>
     <meta name="description" content="An interactive 3D portfolio gallery showcasing projects in a virtual museum space." />
-    <meta http-equiv="refresh" content="0;url=/client/" />
     <style>
       body {
         font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -37,11 +36,26 @@
         text-decoration: underline;
       }
     </style>
+    <!-- If testing locally, redirect to client folder -->
+    <script>
+      // Check if we're in a local environment or GitHub Pages
+      const isLocal = window.location.hostname === "localhost" || 
+                      window.location.hostname === "127.0.0.1";
+      
+      // If local, redirect to /client/
+      // If on GitHub Pages, redirect to the base of the site (root of repo)
+      if (isLocal) {
+        window.location.href = '/client/';
+      } else {
+        // For GitHub Pages, just go to the root which should load the built app
+        window.location.href = '/MuseumInteractive/';
+      }
+    </script>
   </head>
   <body>
     <div class="loading">
       <h1>Loading 3D Portfolio Gallery</h1>
-      <p>If you are not redirected automatically, please <a href="/client/">click here</a> to access the portfolio.</p>
+      <p>If you are not redirected automatically, please <a href="./client/">click here</a> to access the portfolio.</p>
     </div>
   </body>
 </html>

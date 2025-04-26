@@ -30,6 +30,10 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+        env:
+          NODE_ENV: production
+      - name: Copy 404.html
+        run: cp dist/public/index.html dist/public/404.html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

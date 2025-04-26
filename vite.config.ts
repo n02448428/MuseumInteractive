@@ -21,7 +21,7 @@ export default defineConfig({
     },
   },
   root: path.resolve(__dirname, "client"),
-  base: process.env.NODE_ENV === "production" ? "/portfolio-gallery/" : "/",
+  base: process.env.NODE_ENV === "production" ? "/MuseumInteractive/" : "/",
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
