@@ -1,14 +1,14 @@
 import { Exhibit, ProjectCategory } from '../lib/types';
 
-// Define the gallery exhibits in 3D space - arranged in a wider, closer semicircle for better visibility on mobile
+// Define the gallery exhibits in 3D space - arranged in a semicircle for better visibility
 export const exhibits: Exhibit[] = [
   // Music exhibit - Boombox (left end of arc)
   {
     id: 'music-exhibit',
     category: ProjectCategory.MUSIC,
-    position: [-6, 1.5, -8], // Moved closer and more visible
+    position: [-8, 1, -10],
     rotation: [0, Math.PI / 5, 0],
-    scale: [1.5, 1.5, 1.5], // Enlarged for better visibility
+    scale: [1.2, 1.2, 1.2],
     title: 'Music Projects',
     description: 'Explore musical compositions and audio productions.'
   },
@@ -17,9 +17,9 @@ export const exhibits: Exhibit[] = [
   {
     id: 'poetry-exhibit',
     category: ProjectCategory.POETRY,
-    position: [-3, 1.5, -7], // Moved closer and more visible
+    position: [-4, 1, -11],
     rotation: [0, Math.PI / 10, 0],
-    scale: [1.5, 1.5, 1.5], // Enlarged for better visibility
+    scale: [1.2, 1.2, 1.2],
     title: 'Poetry Works',
     description: 'A collection of poetic expressions and written art.'
   },
@@ -28,9 +28,9 @@ export const exhibits: Exhibit[] = [
   {
     id: 'art-exhibit',
     category: ProjectCategory.ART,
-    position: [0, 1.5, -6], // Moved closer and more visible
+    position: [0, 1, -12],
     rotation: [0, 0, 0],
-    scale: [1.5, 1.5, 1.5], // Enlarged for better visibility
+    scale: [1.2, 1.2, 1.2],
     title: 'Visual Art',
     description: 'A showcase of visual artistry and creative designs.'
   },
@@ -39,9 +39,9 @@ export const exhibits: Exhibit[] = [
   {
     id: 'tech-exhibit',
     category: ProjectCategory.TECH,
-    position: [3, 1.5, -7], // Moved closer and more visible
+    position: [4, 1, -11],
     rotation: [0, -Math.PI / 10, 0],
-    scale: [1.5, 1.5, 1.5], // Enlarged for better visibility
+    scale: [1.2, 1.2, 1.2],
     title: 'Tech & Apps',
     description: 'Software projects, games, and technical applications.'
   },
@@ -50,7 +50,7 @@ export const exhibits: Exhibit[] = [
   {
     id: 'social-exhibit',
     category: ProjectCategory.SOCIAL,
-    position: [6, 1.5, -8], // Moved closer and more visible
+    position: [8, 1, -10],
     rotation: [0, -Math.PI / 5, 0],
     scale: [1.2, 1.2, 1.2],
     title: 'Social Media',
