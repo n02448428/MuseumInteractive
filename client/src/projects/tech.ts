@@ -3,12 +3,11 @@ import { Project, ProjectCategory } from '../lib/types';
 export const techProjects: Project[] = [
   {
     id: 'tech-1',
-    title: 'Interactive Data Visualization Tool',
-    description: 'A web application for visualizing complex datasets through interactive charts and graphs.',
+    title: 'Museum Interactive',
+    description: 'Interactive 3D portfolio built with Three.js and React',
     category: ProjectCategory.TECH,
-    date: 'August 2023',
-    details: 'Built with React, D3.js, and TypeScript, this application transforms raw data into intuitive visual representations. Features include responsive design, customizable color schemes, and export capabilities.',
-    projectUrl: 'https://github.com/example/data-viz'
+    date: '2023-12-01',
+    projectUrl: 'https://github.com/n02448428/MuseumInteractive'
   },
   {
     id: 'tech-2',

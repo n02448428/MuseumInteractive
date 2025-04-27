@@ -209,6 +209,20 @@ export default function ExhibitObject({ exhibit }: ExhibitObjectProps) {
       }, path.length * 800); // Slightly before we show details
     }
     
+    // Attempt to load and display the RTF file for this exhibit
+    const rtfPath = `/content/${exhibit.category}/exhibit.rtf`;
+    
+    // Load the RTF file content (will be displayed in ProjectDetails)
+    fetch(rtfPath)
+      .then(response => {
+        if (!response.ok) {
+          console.warn(`RTF file not found at ${rtfPath}`);
+        }
+      })
+      .catch(error => {
+        console.error("Error loading RTF file:", error);
+      });
+    
     // Show project details when we arrive
     setTimeout(() => {
       setShowProjectDetails(true);

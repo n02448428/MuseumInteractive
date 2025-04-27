@@ -186,6 +186,25 @@ export default function ProjectDetails() {
                     </a>
                   </div>
                 )}
+                
+                {/* RTF file content display - using iframe to render RTF file */}
+                {currentExhibit && (
+                  <div className="rtf-content">
+                    <div className="rtf-wrapper">
+                      <iframe 
+                        src={`/content/${currentExhibit.category}/exhibit.rtf`}
+                        title={`${currentExhibit.title} RTF Content`}
+                        width="100%"
+                        height="200px"
+                        style={{ 
+                          border: `1px solid ${categoryColor}`,
+                          borderRadius: '4px',
+                          marginTop: '10px'
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <p>No projects available in this category.</p>

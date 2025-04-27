@@ -7,8 +7,8 @@ export default function WallCredit() {
   const [hovered, setHovered] = useState(false);
   const [clicked, setClicked] = useState(false);
   
-  // Position behind starting position
-  const position: [number, number, number] = [0, 1.8, -20];
+  // Position on the opposite wall (front wall)
+  const position: [number, number, number] = [0, 1.8, 20];
   
   // Slight pulse animation for the text
   useFrame(() => {
