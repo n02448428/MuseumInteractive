@@ -1,59 +1,38 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>3D Portfolio Gallery</title>
-    <meta name="description" content="An interactive 3D portfolio gallery showcasing projects in a virtual museum space." />
+    <title>Portfolio Gallery</title>
+    <!-- Start Single Page Apps for GitHub Pages -->
     <script type="text/javascript">
-      // JavaScript redirect for GitHub Pages
-      (function() {
-        // Get base URL for the repository
-        const baseUrl = window.location.hostname.includes('github.io') 
-          ? '/MuseumInteractive'  // GitHub Pages with username/repo structure
-          : '';  // Local development
-
-        // Redirect to the client directory
-        window.location.href = baseUrl + '/client/';
-      })();
+      // Single Page Apps for GitHub Pages
+      // MIT License
+      // https://github.com/rafgraph/spa-github-pages
+      // This script checks to see if a redirect is present in the query string,
+      // converts it back into the correct url and adds it to the
+      // browser's history using window.history.replaceState(...),
+      // which won't cause the browser to attempt to load the new url.
+      // When the single page app is loaded further down in this file,
+      // the correct url will be waiting in the browser's history for
+      // the single page app to route accordingly.
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) { 
+            return s.replace(/~and~/g, '&')
+          }).join('?');
+          window.history.replaceState(null, null,
+              l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location))
     </script>
-    <style>
-      body {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background-color: #f0f0f0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-        padding: 20px;
-        text-align: center;
-      }
-      .loading {
-        max-width: 600px;
-      }
-      h1 {
-        margin-bottom: 1rem;
-      }
-      p {
-        margin-bottom: 1.5rem;
-      }
-      a {
-        color: #0066cc;
-        text-decoration: none;
-        font-weight: bold;
-      }
-      a:hover {
-        text-decoration: underline;
-      }
-    </style>
+    <!-- End Single Page Apps for GitHub Pages -->
+    <script type="module" crossorigin src="/MuseumInteractive/assets/index-CSwdByue.js"></script>
+    <link rel="stylesheet" crossorigin href="/MuseumInteractive/assets/index-CQWXQUWV.css">
   </head>
   <body>
-    <div class="loading">
-      <h1>3D Portfolio Gallery</h1>
-      <p>Loading the interactive portfolio gallery...</p>
-      <p>If you are not redirected automatically, please <a href="client/">click here</a>.</p>
-    </div>
+    <div id="root"></div>
   </body>
 </html>
