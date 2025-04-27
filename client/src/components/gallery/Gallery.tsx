@@ -26,17 +26,22 @@ export default function Gallery() {
   useEffect(() => {
     setIsMobile(isMobile);
     console.log("Device is mobile:", isMobile);
-  }, [isMobile, setIsMobile]);
-  
-  // One-time camera initialization - all subsequent camera control is done in the FirstPersonControls component
-  useEffect(() => {
-    // Initial camera setup - positioned to view the semicircle of exhibits
-    camera.position.set(0, 1.8, 0); // Positioned at the center of the gallery
-    camera.rotation.set(0, 0, 0); // Looking toward the exhibits
-    camera.lookAt(new THREE.Vector3(0, 1.8, -10)); // Look toward the exhibits
     
-    console.log("Camera initialized at:", camera.position);
-  }, [camera]);
+    // Adjust initial camera position based on device
+    if (isMobile) {
+      // For mobile: position camera back further to see all exhibits
+      camera.position.set(0, 2.5, 10); // Positioned further back
+      camera.rotation.set(0, Math.PI, 0); // Looking toward the exhibits
+      camera.lookAt(new THREE.Vector3(0, 1.8, -10)); // Look toward the exhibits
+    } else {
+      // For desktop: standard position
+      camera.position.set(0, 1.8, 0); // Positioned at the center of the gallery
+      camera.rotation.set(0, 0, 0); // Looking toward the exhibits
+      camera.lookAt(new THREE.Vector3(0, 1.8, -10)); // Look toward the exhibits
+    }
+    
+    console.log("Camera initialized at:", camera.position, "for mobile:", isMobile);
+  }, [isMobile, setIsMobile, camera]);
   
   // Create gallery dimensions
   const GALLERY_WIDTH = 50;

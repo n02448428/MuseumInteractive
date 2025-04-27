@@ -24,8 +24,43 @@ export default function MobileControls() {
     camera: { position, lookAt }, 
     interaction: { isInteracting },
     isMobile,
-    path
+    path,
+    setIsMobile
   } = usePortfolio();
+  
+  // Detect mobile on mount more aggressively
+  useEffect(() => {
+    const checkIsMobile = () => {
+      const isTouchDevice = 'ontouchstart' in window || 
+        navigator.maxTouchPoints > 0 ||
+        (navigator as any).msMaxTouchPoints > 0;
+      
+      const isMobileViewport = window.innerWidth <= 768;
+      
+      return isTouchDevice || isMobileViewport;
+    };
+    
+    const mobileDetected = checkIsMobile();
+    setIsMobile(mobileDetected);
+    
+    // Configure initial view for mobile
+    if (mobileDetected) {
+      // Position camera at a better vantage point for mobile
+      updateCameraPosition([0, 2.5, 5]);
+      updateCameraLookAt([0, 1, -5]);
+    }
+    
+    // Listen for orientation changes
+    window.addEventListener('resize', () => {
+      setIsMobile(checkIsMobile());
+    });
+    
+    return () => {
+      window.removeEventListener('resize', () => {
+        setIsMobile(checkIsMobile());
+      });
+    };
+  }, [setIsMobile, updateCameraPosition, updateCameraLookAt]);
   
   // Effect for applying movement from joystick
   useEffect(() => {
@@ -42,8 +77,8 @@ export default function MobileControls() {
       
       const right = new THREE.Vector3(forward.z, 0, -forward.x);
       
-      // Apply movement
-      const moveSpeed = 0.1;
+      // Apply movement with increased speed
+      const moveSpeed = 0.15; // Increased from 0.1
       const movement = new THREE.Vector3();
       movement.addScaledVector(forward, -moveVector.y * moveSpeed);
       movement.addScaledVector(right, moveVector.x * moveSpeed);
@@ -67,7 +102,7 @@ export default function MobileControls() {
     return () => clearInterval(interval);
   }, [joystickActive, moveVector, position, lookAt, updateCameraPosition, setCameraMoving, isInteracting, path.active]);
   
-  // Effect for applying rotation from look area
+  // Effect for applying rotation from look area with increased sensitivity
   useEffect(() => {
     if (!lookActive || isInteracting) return;
     
@@ -78,8 +113,8 @@ export default function MobileControls() {
       lookAt[2] - position[2]
     );
     
-    // Rotate direction based on touch movement
-    const lookSpeed = 0.01;
+    // Rotate direction based on touch movement - increased sensitivity
+    const lookSpeed = 0.015; // Increased from 0.01
     const angle = -lookDelta.x * lookSpeed;
     currentDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
     
@@ -105,7 +140,7 @@ export default function MobileControls() {
     if (!joystickActive) return;
     
     const touch = e.touches[0];
-    const maxDistance = 50; // Max joystick distance
+    const maxDistance = 60; // Increased from 50 for better control
     
     const deltaX = touch.clientX - startTouch.x;
     const deltaY = touch.clientY - startTouch.y;
