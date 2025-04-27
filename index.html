@@ -47,8 +47,11 @@
       if (isLocal) {
         window.location.href = '/client/';
       } else {
-        // For GitHub Pages, just go to the root which should load the built app
-        window.location.href = '/MuseumInteractive/';
+        // For GitHub Pages, make sure we have the repo name in the path
+        const path = window.location.pathname;
+        if (!path.includes('/MuseumInteractive/')) {
+          window.location.href = '/MuseumInteractive/';
+        }
       }
     </script>
   </head>
