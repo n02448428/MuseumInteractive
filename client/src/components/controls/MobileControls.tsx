@@ -1,258 +1,280 @@
-import { useState, useEffect } from 'react';
-import { usePortfolio } from '../../lib/stores/usePortfolio';
+import { useEffect, useRef, useState } from 'react';
+import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { cn } from '../../lib/utils';
+import { usePortfolio } from '../../lib/stores/usePortfolio';
 
 interface TouchPosition {
-  x: number;
-  y: number;
+  identifier: number;
+  startX: number;
+  startY: number;
+  currentX: number;
+  currentY: number;
 }
 
-export default function MobileControls() {
-  const [showControls, setShowControls] = useState(true);
-  const [joystickActive, setJoystickActive] = useState(false);
-  const [joystickPos, setJoystickPos] = useState<TouchPosition>({ x: 0, y: 0 });
-  const [moveVector, setMoveVector] = useState<TouchPosition>({ x: 0, y: 0 });
-  const [lookActive, setLookActive] = useState(false);
-  const [lookDelta, setLookDelta] = useState<TouchPosition>({ x: 0, y: 0 });
-  const [startTouch, setStartTouch] = useState<TouchPosition>({ x: 0, y: 0 });
-  
-  const { 
-    updateCameraPosition, 
-    updateCameraLookAt,
-    setCameraMoving,
-    camera: { position, lookAt }, 
-    interaction: { isInteracting },
-    isMobile,
-    path,
-    setIsMobile
-  } = usePortfolio();
-  
-  // Detect mobile on mount more aggressively
+interface MobileControlsProps {
+  moveSpeed?: number;
+  lookSpeed?: number;
+}
+
+export default function MobileControls({ 
+  moveSpeed = 0.1, // Increased speed for better responsiveness
+  lookSpeed = 0.15, // Increased look sensitivity
+}: MobileControlsProps) {
+  const { camera } = useThree();
+  const { interaction: { isInteracting } } = usePortfolio();
+  const moveJoystickRef = useRef<HTMLDivElement>(null);
+  const lookJoystickRef = useRef<HTMLDivElement>(null);
+  const [moveTouch, setMoveTouch] = useState<TouchPosition | null>(null);
+  const [lookTouch, setLookTouch] = useState<TouchPosition | null>(null);
+
+  // Camera rotation control
+  const [rotation, setRotation] = useState({ x: 0, y: 0 });
+
+  // Track if controls are initialized
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize rotation state from camera on first render
   useEffect(() => {
-    const checkIsMobile = () => {
-      const isTouchDevice = 'ontouchstart' in window || 
-        navigator.maxTouchPoints > 0 ||
-        (navigator as any).msMaxTouchPoints > 0;
-      
-      const isMobileViewport = window.innerWidth <= 768;
-      
-      return isTouchDevice || isMobileViewport;
-    };
-    
-    const mobileDetected = checkIsMobile();
-    setIsMobile(mobileDetected);
-    
-    // Configure initial view for mobile
-    if (mobileDetected) {
-      // Position camera at a better vantage point for mobile
-      updateCameraPosition([0, 2.5, 5]);
-      updateCameraLookAt([0, 1, -5]);
+    if (!isInitialized && camera) {
+      setRotation({
+        x: camera.rotation.x,
+        y: camera.rotation.y
+      });
+      setIsInitialized(true);
     }
-    
-    // Listen for orientation changes
-    window.addEventListener('resize', () => {
-      setIsMobile(checkIsMobile());
-    });
-    
-    return () => {
-      window.removeEventListener('resize', () => {
-        setIsMobile(checkIsMobile());
+  }, [camera, isInitialized]);
+
+  // Handle touch events for movement joystick
+  useEffect(() => {
+    const moveJoystick = moveJoystickRef.current;
+    if (!moveJoystick) return;
+
+    const handleMoveStart = (e: TouchEvent) => {
+      // Prevent default to avoid scrolling while touching the joystick
+      e.preventDefault();
+
+      const touch = e.touches[0];
+      setMoveTouch({
+        identifier: touch.identifier,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        currentX: touch.clientX,
+        currentY: touch.clientY
       });
     };
-  }, [setIsMobile, updateCameraPosition, updateCameraLookAt]);
-  
-  // Effect for applying movement from joystick
-  useEffect(() => {
-    if (!joystickActive || isInteracting || path.active) return;
-    
-    // Only update at 60fps
-    const interval = setInterval(() => {
-      // Calculate direction vectors
-      const forward = new THREE.Vector3(
-        lookAt[0] - position[0],
-        0,
-        lookAt[2] - position[2]
-      ).normalize();
-      
-      const right = new THREE.Vector3(forward.z, 0, -forward.x);
-      
-      // Apply movement with increased speed
-      const moveSpeed = 0.15; // Increased from 0.1
-      const movement = new THREE.Vector3();
-      movement.addScaledVector(forward, -moveVector.y * moveSpeed);
-      movement.addScaledVector(right, moveVector.x * moveSpeed);
-      
-      if (movement.length() > 0) {
-        setCameraMoving(true);
-        const newPos = new THREE.Vector3(...position).add(movement);
-        
-        // Constrain to gallery bounds
-        const minX = -25, maxX = 25;
-        const minZ = -25, maxZ = 25;
-        newPos.x = THREE.MathUtils.clamp(newPos.x, minX, maxX);
-        newPos.z = THREE.MathUtils.clamp(newPos.z, minZ, maxZ);
-        
-        updateCameraPosition([newPos.x, position[1], newPos.z]);
-      } else {
-        setCameraMoving(false);
+
+    const handleMoveMove = (e: TouchEvent) => {
+      if (!moveTouch) return;
+
+      // Find the touch with the same identifier
+      for (let i = 0; i < e.touches.length; i++) {
+        if (e.touches[i].identifier === moveTouch.identifier) {
+          const touch = e.touches[i];
+          setMoveTouch({
+            ...moveTouch,
+            currentX: touch.clientX,
+            currentY: touch.clientY
+          });
+          break;
+        }
       }
-    }, 16); // ~60fps
-    
-    return () => clearInterval(interval);
-  }, [joystickActive, moveVector, position, lookAt, updateCameraPosition, setCameraMoving, isInteracting, path.active]);
-  
-  // Effect for applying rotation from look area with increased sensitivity
+    };
+
+    const handleMoveEnd = () => {
+      setMoveTouch(null);
+    };
+
+    moveJoystick.addEventListener('touchstart', handleMoveStart, { passive: false });
+    document.addEventListener('touchmove', handleMoveMove, { passive: true });
+    document.addEventListener('touchend', handleMoveEnd);
+
+    return () => {
+      moveJoystick.removeEventListener('touchstart', handleMoveStart);
+      document.removeEventListener('touchmove', handleMoveMove);
+      document.removeEventListener('touchend', handleMoveEnd);
+    };
+  }, [moveTouch]);
+
+  // Handle touch events for look joystick
   useEffect(() => {
-    if (!lookActive || isInteracting) return;
-    
-    // Calculate new look direction
-    const currentDir = new THREE.Vector3(
-      lookAt[0] - position[0],
-      0,
-      lookAt[2] - position[2]
-    );
-    
-    // Rotate direction based on touch movement - increased sensitivity
-    const lookSpeed = 0.015; // Increased from 0.01
-    const angle = -lookDelta.x * lookSpeed;
-    currentDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
-    
-    // Calculate new look target
-    const newLookAt = new THREE.Vector3(...position).add(currentDir);
-    updateCameraLookAt([newLookAt.x, lookAt[1], newLookAt.z]);
-    
-    // Reset look delta after applying
-    setLookDelta({ x: 0, y: 0 });
-  }, [lookActive, lookDelta, position, lookAt, updateCameraLookAt, isInteracting]);
-  
-  // Handle touch events for the movement joystick
-  const handleJoystickStart = (e: React.TouchEvent) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    setJoystickActive(true);
-    setJoystickPos({ x: touch.clientX, y: touch.clientY });
-    setStartTouch({ x: touch.clientX, y: touch.clientY });
-  };
-  
-  const handleJoystickMove = (e: React.TouchEvent) => {
-    e.preventDefault();
-    if (!joystickActive) return;
-    
-    const touch = e.touches[0];
-    const maxDistance = 60; // Increased from 50 for better control
-    
-    const deltaX = touch.clientX - startTouch.x;
-    const deltaY = touch.clientY - startTouch.y;
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    
-    if (distance > maxDistance) {
-      // Normalize the vector
-      const ratio = maxDistance / distance;
-      const normalizedX = deltaX * ratio;
-      const normalizedY = deltaY * ratio;
-      
-      setMoveVector({
-        x: normalizedX / maxDistance,
-        y: normalizedY / maxDistance
+    const lookJoystick = lookJoystickRef.current;
+    if (!lookJoystick) return;
+
+    const handleLookStart = (e: TouchEvent) => {
+      // Prevent default to avoid scrolling while touching the joystick
+      e.preventDefault();
+
+      const touch = e.touches[0];
+      setLookTouch({
+        identifier: touch.identifier,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        currentX: touch.clientX,
+        currentY: touch.clientY
       });
-    } else {
-      setMoveVector({
-        x: deltaX / maxDistance,
-        y: deltaY / maxDistance
-      });
+    };
+
+    const handleLookMove = (e: TouchEvent) => {
+      if (!lookTouch) return;
+
+      // Find the touch with the same identifier
+      for (let i = 0; i < e.touches.length; i++) {
+        if (e.touches[i].identifier === lookTouch.identifier) {
+          const touch = e.touches[i];
+          setLookTouch({
+            ...lookTouch,
+            currentX: touch.clientX,
+            currentY: touch.clientY
+          });
+          break;
+        }
+      }
+    };
+
+    const handleLookEnd = () => {
+      setLookTouch(null);
+    };
+
+    lookJoystick.addEventListener('touchstart', handleLookStart, { passive: false });
+    document.addEventListener('touchmove', handleLookMove, { passive: true });
+    document.addEventListener('touchend', handleLookEnd);
+
+    return () => {
+      lookJoystick.removeEventListener('touchstart', handleLookStart);
+      document.removeEventListener('touchmove', handleLookMove);
+      document.removeEventListener('touchend', handleLookEnd);
+    };
+  }, [lookTouch]);
+
+  // Move camera based on movement joystick
+  useEffect(() => {
+    if (!moveTouch || isInteracting) return;
+
+    const dx = moveTouch.currentX - moveTouch.startX;
+    const dy = moveTouch.currentY - moveTouch.startY;
+
+    // Calculate the direction vector
+    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+    const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+
+    // Remove vertical component to keep movement on the xz plane
+    forward.y = 0;
+    right.y = 0;
+
+    // Normalize to maintain consistent speed regardless of camera angle
+    forward.normalize();
+    right.normalize();
+
+    // Scale by joystick displacement with added sensitivity for small movements
+    const moveAmount = new THREE.Vector3()
+      .addScaledVector(forward, -dy * moveSpeed)
+      .addScaledVector(right, dx * moveSpeed);
+
+    // Apply a minimum threshold for small movements
+    if (moveAmount.length() > 0.001) {
+      // Update camera position
+      camera.position.add(moveAmount);
     }
-  };
-  
-  const handleJoystickEnd = () => {
-    setJoystickActive(false);
-    setMoveVector({ x: 0, y: 0 });
-    setCameraMoving(false);
-  };
-  
-  // Handle touch events for the look area
-  const handleLookStart = (e: React.TouchEvent) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    setLookActive(true);
-    setStartTouch({ x: touch.clientX, y: touch.clientY });
-  };
-  
-  const handleLookMove = (e: React.TouchEvent) => {
-    e.preventDefault();
-    if (!lookActive) return;
-    
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - startTouch.x;
-    const deltaY = touch.clientY - startTouch.y;
-    
-    setLookDelta({ x: deltaX, y: deltaY });
-    setStartTouch({ x: touch.clientX, y: touch.clientY });
-  };
-  
-  const handleLookEnd = () => {
-    setLookActive(false);
-    setLookDelta({ x: 0, y: 0 });
-  };
-  
-  // Toggle controls visibility
-  const toggleControls = () => {
-    setShowControls(!showControls);
-  };
-  
-  // Skip rendering if not on mobile
-  if (!isMobile) return null;
-  
+
+  }, [moveTouch, camera, moveSpeed, isInteracting]);
+
+  // Rotate camera based on look joystick
+  useEffect(() => {
+    if (!lookTouch || isInteracting) return;
+
+    const dx = (lookTouch.currentX - lookTouch.startX) * lookSpeed;
+    const dy = (lookTouch.currentY - lookTouch.startY) * lookSpeed;
+
+    // Only update if there's a significant change
+    if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+      // Update rotation state
+      setRotation(prev => ({
+        x: prev.x - dy * 0.01,
+        y: prev.y - dx * 0.01
+      }));
+    }
+
+  }, [lookTouch, lookSpeed, isInteracting]);
+
+  // Apply rotation to camera
+  useEffect(() => {
+    if (isInteracting) return;
+
+    // Apply rotation to camera with clamped values
+    camera.rotation.x = THREE.MathUtils.clamp(
+      rotation.x,
+      -Math.PI / 2.5,  // Limit looking up (increased range)
+      Math.PI / 2.5    // Limit looking down (increased range)
+    );
+    camera.rotation.y = rotation.y;
+
+  }, [rotation, camera, isInteracting]);
+
   return (
-    <div className="mobile-controls">
-      {/* Control visibility toggle */}
-      <button 
-        className="mobile-controls-toggle"
-        onClick={toggleControls}
-        aria-label={showControls ? "Hide controls" : "Show controls"}
+    <>
+      {/* Movement joystick - left bottom */}
+      <div 
+        ref={moveJoystickRef}
+        className="mobile-joystick-area"
+        style={{
+          position: 'absolute',
+          bottom: '40px',
+          left: '40px',
+          width: '140px', // Larger touch area
+          height: '140px', // Larger touch area
+          backgroundColor: 'rgba(0, 0, 0, 0.4)', // Slightly darker for better visibility
+          borderRadius: '50%',
+          border: '2px solid rgba(255, 255, 255, 0.5)', // More visible border
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          pointerEvents: 'auto',
+          touchAction: 'none',
+          zIndex: 1000 // Ensure controls are on top
+        }}
       >
-        {showControls ? "Hide Controls" : "Show Controls"}
-      </button>
-      
-      {showControls && (
-        <>
-          {/* Movement joystick */}
-          <div 
-            className="mobile-joystick-area"
-            onTouchStart={handleJoystickStart}
-            onTouchMove={handleJoystickMove}
-            onTouchEnd={handleJoystickEnd}
-            onTouchCancel={handleJoystickEnd}
-          >
-            <div className="mobile-joystick-base">
-              <div 
-                className={cn("mobile-joystick-handle", {
-                  "active": joystickActive
-                })}
-                style={{
-                  transform: `translate(${moveVector.x * 50}px, ${moveVector.y * 50}px)`
-                }}
-              />
-            </div>
-          </div>
-          
-          {/* Look area */}
-          <div 
-            className="mobile-look-area"
-            onTouchStart={handleLookStart}
-            onTouchMove={handleLookMove}
-            onTouchEnd={handleLookEnd}
-            onTouchCancel={handleLookEnd}
-          >
-            <div className="mobile-look-icon">
-              Look
-            </div>
-          </div>
-        </>
-      )}
-      
-    </div>
+        <div 
+          style={{
+            color: 'white',
+            fontSize: '24px', // Larger icon
+            userSelect: 'none'
+          }}
+        >
+          ⇄
+        </div>
+      </div>
+
+      {/* Look joystick - right bottom */}
+      <div 
+        ref={lookJoystickRef}
+        className="mobile-look-area"
+        style={{
+          position: 'absolute',
+          bottom: '40px',
+          right: '40px',
+          width: '140px', // Larger touch area
+          height: '140px', // Larger touch area
+          backgroundColor: 'rgba(0, 0, 0, 0.4)', // Slightly darker for better visibility
+          borderRadius: '50%',
+          border: '2px solid rgba(255, 255, 255, 0.5)', // More visible border
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          pointerEvents: 'auto',
+          touchAction: 'none',
+          zIndex: 1000 // Ensure controls are on top
+        }}
+      >
+        <div 
+          style={{
+            color: 'white',
+            fontSize: '24px', // Larger icon
+            userSelect: 'none'
+          }}
+        >
+          👀
+        </div>
+      </div>
+    </>
   );
 }
-
-// CSS styles moved to client/src/index.css
