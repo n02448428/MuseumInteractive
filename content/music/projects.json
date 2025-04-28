@@ -1,0 +1,25 @@
+{
+  "projects": [
+    {
+      "id": "music-1",
+      "title": "Ambient Waves",
+      "description": "A calming ambient track with ocean sounds",
+      "date": "2023-06-15",
+      "audioFile": "ambient.mp3"
+    },
+    {
+      "id": "music-2",
+      "title": "Urban Beats",
+      "description": "Electronic beats with an urban vibe",
+      "date": "2023-08-22",
+      "audioFile": "urban.mp3"
+    },
+    {
+      "id": "music-3",
+      "title": "Piano Reflections",
+      "description": "Solo piano piece reflecting on life's journey",
+      "date": "2023-10-05",
+      "audioFile": "piano.mp3"
+    }
+  ]
+}

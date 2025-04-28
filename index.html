@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Portfolio Gallery</title>
+    <meta name="description" content="An interactive 3D portfolio gallery showcasing projects in a virtual museum space." />
+    <script type="text/javascript">
+      // JavaScript redirect for GitHub Pages
+      (function() {
+        // Get base URL for the repository
+        const baseUrl = window.location.hostname.includes('github.io') 
+          ? '/MuseumInteractive'  // GitHub Pages with username/repo structure
+          : '';  // Local development
+
+        // Only redirect if we're not already in the client directory and not in a redirect loop
+        if (!window.location.pathname.includes('/client/') && !window.location.search.includes('?/')) {
+          // Use replace instead of setting href to avoid adding to browser history
+          window.location.replace(baseUrl + '/client/');
+        }
+      })();
+    </script>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background-color: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        padding: 20px;
+        text-align: center;
+      }
+      .loading {
+        max-width: 600px;
+      }
+      h1 {
+        margin-bottom: 1rem;
+      }
+      p {
+        margin-bottom: 1.5rem;
+      }
+      a {
+        color: #0066cc;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="loading">
+      <h1>3D Portfolio Gallery</h1>
+      <p>Loading the interactive portfolio gallery...</p>
+      <p>If you are not redirected automatically, please <a href="client/">click here</a>.</p>
+    </div>
+  </body>
+</html>

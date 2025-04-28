@@ -1,0 +1,25 @@
+{
+  "projects": [
+    {
+      "id": "tech-1",
+      "title": "Portfolio Gallery",
+      "description": "Interactive 3D portfolio built with Three.js and React",
+      "date": "2023-12-01",
+      "projectUrl": "https://github.com/n02448428/portfolio-gallery"
+    },
+    {
+      "id": "tech-2",
+      "title": "Data Visualization Tools",
+      "description": "A collection of interactive data visualization components",
+      "date": "2023-10-15",
+      "projectUrl": "https://github.com/n02448428/data-viz"
+    },
+    {
+      "id": "tech-3",
+      "title": "AI Text Generator",
+      "description": "Web app using machine learning for creative text generation",
+      "date": "2023-09-05",
+      "projectUrl": "https://github.com/n02448428/ai-text-gen"
+    }
+  ]
+}

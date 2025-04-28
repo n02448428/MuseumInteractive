@@ -1,0 +1,25 @@
+{
+  "projects": [
+    {
+      "id": "art-1",
+      "title": "Abstract Patterns",
+      "description": "A series of abstract digital patterns",
+      "date": "2023-07-10",
+      "thumbnailUrl": "abstract.jpg"
+    },
+    {
+      "id": "art-2",
+      "title": "Urban Landscapes",
+      "description": "Photographic series of urban environments",
+      "date": "2023-09-05",
+      "thumbnailUrl": "urban.jpg"
+    },
+    {
+      "id": "art-3",
+      "title": "Digital Portraits",
+      "description": "Digital art portraits exploring human emotion",
+      "date": "2023-11-18",
+      "thumbnailUrl": "portrait.jpg"
+    }
+  ]
+}

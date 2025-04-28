@@ -1,0 +1,24 @@
+{
+  "projects": [
+    {
+      "id": "social-1",
+      "title": "GitHub",
+      "description": "Check out my coding projects and contributions",
+      "date": "2023-12-01",
+      "projectUrl": "https://github.com/n02448428"
+    },
+    {
+      "id": "social-2",
+      "title": "Twitter",
+      "description": "Follow me on X (formerly Twitter)",
+      "date": "2023-11-15",
+      "projectUrl": "https://x.com/0dotdmtr"
+    },
+    {
+      "id": "social-3",
+      "title": "Contact",
+      "description": "Always open to new project proposals, ideas, and conversations.",
+      "date": "2023-12-10"
+    }
+  ]
+}
